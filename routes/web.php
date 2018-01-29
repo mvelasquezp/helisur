@@ -11,6 +11,15 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
+Route::get("/", function () {
+	$arrOpts = [
+		"usuario" => Auth::user()
+	];
+    return view("usuario.home")->with($arrOpts);
+});
+//autenticacion de usuarios
+Route::group(["prefix" => "login"], function() {
+	Route::get("/", ["as" => "login", "uses" => "Autenticacion@form_login"]);
+	Route::post("verificar", "Autenticacion@post_login");
+	Route::get("logout", "Autenticacion@logout");
 });
