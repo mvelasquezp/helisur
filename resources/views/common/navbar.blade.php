@@ -3,7 +3,7 @@
 			<header class="navbar-light">
 				<img src="{{ asset('images/helisur-logo-big.png') }}">
 				<div class="nav-profile">
-					<h1>Encuestas pendientes</h1>
+					<h1>Gestión de Competencias</h1>
 					<img src="{{ asset('images/user-default.png') }}">
 					<div class="nav-profile-options">
 						<p>Bienvenid@</p>
@@ -24,7 +24,7 @@
 				<div id="navbar" class="collapse navbar-collapse">
 					<ul class="navbar-nav mr-auto">
 						<li class="nav-item dropdown d-md-block d-lg-none bg-info">
-							<a class="nav-link">Encuestas pendientes</a>
+							<a class="nav-link">Gestión de Competencias</a>
 						</li>
 						<li class="nav-item dropdown d-md-block d-lg-none">
 							<a class="nav-link dropdown-toggle" href="#" id="serviciosDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-user"></i> {{ $usuario->v_Nombres }} {{ $usuario->v_Apellidos }}</a>
@@ -35,10 +35,10 @@
 					        </div>
 						</li>
 						<!-- -->
-						<li class="nav-item active">
+						<li class="nav-item {{ $menu == 0 ? 'active' : '' }}">
 							<a class="nav-link" href="{{ url('/') }}"><i class="fa fa-home"></i> Resumen</a>
 						</li>
-						<li class="nav-item dropdown">
+						<li class="nav-item dropdown {{ $menu == 1 ? 'active' : '' }}">
 							<a class="nav-link dropdown-toggle" href="#" id="serviciosDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-users"></i> Usuarios</a>
 							<div class="dropdown-menu" aria-labelledby="serviciosDropdown">
 								<a class="dropdown-item" href="{{ url('servicios/distribucion') }}"><i class="fa fa-sitemap"></i> Organigrama</a>
@@ -46,15 +46,15 @@
 								<!--div class="dropdown-divider"></div-->
 					        </div>
 						</li>
-						<li class="nav-item dropdown">
+						<li class="nav-item dropdown {{ $menu == 2 ? 'active' : '' }}">
 							<a class="nav-link dropdown-toggle" href="#" id="serviciosDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-check-square-o"></i> Preguntas</a>
 							<div class="dropdown-menu" aria-labelledby="serviciosDropdown">
-								<a class="dropdown-item" href="{{ url('servicios/distribucion') }}"><i class="fa fa-bars"></i> Clasificación</a>
-								<a class="dropdown-item" href="{{ url('servicios/almacenes') }}"><i class="fa fa-archive"></i> Banco de preguntas</a>
+								<a class="dropdown-item" href="{{ url('preguntas/clasificacion') }}"><i class="fa fa-bars"></i> Clasificación</a>
+								<a class="dropdown-item" href="{{ url('preguntas/banco') }}"><i class="fa fa-archive"></i> Banco de preguntas</a>
 								<!--div class="dropdown-divider"></div-->
 					        </div>
 						</li>
-						<li class="nav-item dropdown">
+						<li class="nav-item dropdown {{ $menu == 3 ? 'active' : '' }}">
 							<a class="nav-link dropdown-toggle" href="#" id="serviciosDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-list-ul"></i> Encuestas</a>
 							<div class="dropdown-menu" aria-labelledby="serviciosDropdown">
 								<a class="dropdown-item" href="{{ url('servicios/distribucion') }}"><i class="fa fa-clock-o"></i> Programación de encuestas</a>
@@ -64,7 +64,7 @@
 								<!--div class="dropdown-divider"></div-->
 					        </div>
 						</li>
-						<li class="nav-item dropdown">
+						<li class="nav-item dropdown {{ $menu == 4 ? 'active' : '' }}">
 							<a class="nav-link dropdown-toggle" href="#" id="serviciosDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-bar-chart"></i> Resultados</a>
 							<div class="dropdown-menu" aria-labelledby="serviciosDropdown">
 								<a class="dropdown-item" href="{{ url('servicios/distribucion') }}"><i class="fa fa-eye"></i> Seguimiento</a>

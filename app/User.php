@@ -25,4 +25,10 @@ class User extends Authenticatable
     protected $hidden = [
         'password', 'remember_token',
     ];
+
+    //funciones adicionales
+
+    public function esAdmin() {
+        return strcmp($this->tp_usuario, "S") == 0;
+    }
 }

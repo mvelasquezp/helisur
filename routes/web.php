@@ -13,7 +13,8 @@
 
 Route::get("/", function () {
 	$arrOpts = [
-		"usuario" => Auth::user()
+		"usuario" => Auth::user(),
+		"menu" => 0
 	];
     return view("usuario.home")->with($arrOpts);
 });
@@ -22,4 +23,26 @@ Route::group(["prefix" => "login"], function() {
 	Route::get("/", ["as" => "login", "uses" => "Autenticacion@form_login"]);
 	Route::post("verificar", "Autenticacion@post_login");
 	Route::get("logout", "Autenticacion@logout");
+});
+//modulo de resumen
+Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(function() {
+	//modulo de usuarios
+	Route::prefix("usuarios")->group(function() {
+		//
+	});
+	//modulo de preguntas
+	Route::prefix("preguntas")->group(function() {
+		Route::get("clasificacion", "Preguntas@clasificacion");
+		Route::get("banco", "Preguntas@banco");
+		//peticiones post
+		Route::prefix("ajax")->group(function() {
+			Route::post("ins-grupo", "Preguntas@ins_grupo");
+			Route::post("ins-concepto", "Preguntas@ins_concepto");
+			Route::post("ins-categoria", "Preguntas@ins_categoria");
+			Route::post("ins-subcategoria", "Preguntas@ins_subcategoria");
+			Route::post("ins-pregunta", "Preguntas@ins_pregunta");
+		});
+	});
+	//modulo de encuestas
+	//modulo de resultados
 });
