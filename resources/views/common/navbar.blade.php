@@ -41,8 +41,8 @@
 						<li class="nav-item dropdown {{ $menu == 1 ? 'active' : '' }}">
 							<a class="nav-link dropdown-toggle" href="#" id="serviciosDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-users"></i> Usuarios</a>
 							<div class="dropdown-menu" aria-labelledby="serviciosDropdown">
-								<a class="dropdown-item" href="{{ url('servicios/distribucion') }}"><i class="fa fa-sitemap"></i> Organigrama</a>
-								<a class="dropdown-item" href="{{ url('servicios/almacenes') }}"><i class="fa fa-user"></i> Registro de usuarios</a>
+								<a class="dropdown-item" href="{{ url('usuarios/organigrama') }}"><i class="fa fa-sitemap"></i> Organigrama</a>
+								<a class="dropdown-item" href="{{ url('usuarios/registro') }}"><i class="fa fa-user"></i> Registro de usuarios</a>
 								<!--div class="dropdown-divider"></div-->
 					        </div>
 						</li>

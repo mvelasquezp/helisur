@@ -3,7 +3,7 @@
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta charset="UTF-8">
-        <title>UnionStar</title>
+        <title>Helisur</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css" />
         <link rel='stylesheet prefetch' href="{{ asset('css/lato.css') }}" />
         <link rel='stylesheet prefetch' href="{{ asset('css/font-awesome.min.css') }}" />
@@ -18,7 +18,7 @@
         <!-- Button Mixin-->
         <!-- Pen Title-->
         <div class="pen-title">
-            <h1>Bienvenido a Union Star</h1>
+            <h1>Gestión de Competencias</h1>
             <span><!--Pen <i class='fa fa-paint-brush'></i> + <i class='fa fa-code'></i> by <a href='http://andytran.me'>Andy Tran</a>-->&nbsp;</span>
         </div>
         <!-- Form Module-->

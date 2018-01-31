@@ -28,7 +28,8 @@ Route::group(["prefix" => "login"], function() {
 Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(function() {
 	//modulo de usuarios
 	Route::prefix("usuarios")->group(function() {
-		//
+		Route::get("organigrama", "Usuarios@organigrama");
+		Route::get("registro", "Usuarios@registro");
 	});
 	//modulo de preguntas
 	Route::prefix("preguntas")->group(function() {
