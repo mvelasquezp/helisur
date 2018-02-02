@@ -30,6 +30,10 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 	Route::prefix("usuarios")->group(function() {
 		Route::get("organigrama", "Usuarios@organigrama");
 		Route::get("registro", "Usuarios@registro");
+		//peticiones post
+		Route::prefix("ajax")->group(function() {
+			Route::post("dt-oficina", "Usuarios@dt_oficina");
+		});
 	});
 	//modulo de preguntas
 	Route::prefix("preguntas")->group(function() {
