@@ -33,6 +33,7 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 		//peticiones post
 		Route::prefix("ajax")->group(function() {
 			Route::post("dt-oficina", "Usuarios@dt_oficina");
+			Route::post("sv-puesto", "Usuarios@sv_puesto");
 		});
 	});
 	//modulo de preguntas
