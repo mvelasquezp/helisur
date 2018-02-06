@@ -50,6 +50,59 @@
 				</div>
 			</div>
 		</div>
+		<!-- modal nuevo cargo -->
+		<div class="modal fade" id="modal-cargo" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="exampleModalLabel">Registrar nuevo cargo</h5>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<form>
+							<input type="hidden" id="dc-oficina">
+							<div class="form-group">
+								<label for="dc-puesto">Puesto</label>
+								<input type="text" class="form-control" id="dc-puesto" placeholder="Ingrese nombre del nuevo cargo">
+							</div>
+							<div class="form-group">
+								<label for="dc-jerarquia">Tipo puesto:</label>
+								<select id="dc-jerarquia" class="form-control form-control-sm">
+									<option selected disabled>Seleccione</option>
+									<option value="1">Gerente General</option>
+									<option value="2">Auditor Interno</option>
+									<option value="3">Gerente</option>
+									<option value="4">Sub Gerente</option>
+									<option value="5">Jefe</option>
+									<option value="6">Contador General</option>
+									<option value="7">Piloto</option>
+									<option value="8">Copiloto</option>
+									<option value="9">Supervisor</option>
+									<option value="10">Reparador</option>
+									<option value="11">Especialista</option>
+									<option value="12">Inspector</option>
+									<option value="13">Encargado</option>
+									<option value="13">Coordinador</option>
+									<option value="14">Estructurista</option>
+									<option value="15">Mecanico</option>
+									<option value="16">Radio Operador</option>
+									<option value="17">Certificador</option>
+									<option value="18">Aviónico</option>
+									<option value="19">Analista</option>
+									<option value="20">Asistente</option>
+								</select>
+							</div>
+						</form>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+						<button type="button" class="btn btn-primary" id="dc-guardar">Guardar</button>
+					</div>
+				</div>
+			</div>
+		</div>
 		<!-- JS -->
 		@include("common.scripts")
 		<script type="text/javascript" src="{{ asset('js/getorgchart.js') }}"></script>
@@ -89,7 +142,7 @@
             								$("<small/>").addClass("text-muted").html(cargo.nombre)
             							).append(
             								$("<p/>").addClass("mb-1").append(
-            									$("<a/>").attr("href","#").addClass("btn btn-primary btn-xs text-light").html("Cambiar")
+            									$("<a/>").attr("href","#").addClass("btn btn-info btn-xs text-light").html("Cambiar")
         									)
             							)
             						);
@@ -98,8 +151,8 @@
 	            					$("<a/>").attr("href","#").attr({
 	            						"data-oid": args.node.id,
 	            						"data-toggle": "modal",
-	            						"data-target": "#modal-puesto"
-	            					}).addClass("list-group-item").append(
+	            						"data-target": "#modal-cargo"
+	            					}).addClass("list-group-item text-info").append(
 	            						$("<p/>").addClass("mb-1").html("Añadir puesto")
             						)
             					);
@@ -153,6 +206,8 @@
         								$("<b/>").html("Puestos del área:")
     								)
         						).append(dv_cargos).append(
+        							$("<hr/>")
+        						).append(
         							$("<p/>").append(
         								$("<b/>").html("Dependencias:")
     								)
@@ -204,6 +259,11 @@
 				document.getElementById("dp-jerarquia").value = e.relatedTarget.dataset.jer;
 				document.getElementById("dp-oficina").value = e.relatedTarget.dataset.oid;
 			});
+			$("#modal-cargo").on("show.bs.modal", function(e) {
+				document.getElementById("dc-puesto").value = "";
+				$("#dc-jerarquia option[value=0]").prop("selected", true);
+				document.getElementById("dc-oficina").value = e.relatedTarget.dataset.oid;
+			});
 			$("#dp-guardar").on("click", function(e) {
 				e.preventDefault();
 				$("#dp-guardar").hide();
@@ -216,6 +276,21 @@
 				$.post("{{ url('usuarios/ajax/sv-puesto') }}", p, function(response) {
 					if(response.success) location.reload();
 				}, "json");
+			});
+			$("#dc-guardar").on("click", function(e) {
+				e.preventDefault();
+				$("#dc-guardar").hide();
+				var p = {
+					_token: "{{ csrf_token() }}",
+					nom: document.getElementById("dc-puesto").value,
+					jer: document.getElementById("dc-jerarquia").value,
+					ofc: document.getElementById("dc-oficina").value
+				};
+				$.post("{{ url('usuarios/ajax/sv-cargo') }}", p, function(response) {
+					if(response.success) location.reload();
+				}, "json").fail(function(err) {
+					$("#dc-guardar").show();
+				});
 			});
 		</script>
 	</body>
