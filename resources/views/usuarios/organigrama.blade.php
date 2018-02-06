@@ -103,6 +103,22 @@
 				</div>
 			</div>
 		</div>
+		<!-- modal puestos -->
+		<div class="modal fade" id="modal-puesto" tabindex="-1" role="dialog">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<input type="text" class="form-control form-control-sm" id="ps-filtro" placeholder="Seleccione puesto">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<div class="list-group" id="ps-lista"></div>
+					</div>
+				</div>
+			</div>
+		</div>
 		<!-- JS -->
 		@include("common.scripts")
 		<script type="text/javascript" src="{{ asset('js/getorgchart.js') }}"></script>
@@ -111,7 +127,7 @@
 			var abierto = false;
 			var peopleElement = document.getElementById("dv-organigrama");
 	        var orgChart = new getOrgChart(peopleElement, {
-	            primaryFields: ["cargo", "nombre", "jer"],
+	            primaryFields: ["cargo", "nombre", "puesto"],
 	            photoFields: ["image"],
 	            dataSource: {!! json_encode($oficinas) !!},
 	            scale: 0.5,
@@ -120,11 +136,12 @@
 	            enableDetailsView: false,
 	            enableZoomOnNodeDoubleClick: false,
 	            clickNodeEvent: function(sender, args) {
-	            	if(args.node.id != lastId) {
-	            		lastId = args.node.id;
+	            	var aoid = args.node.id;
+	            	if(aoid != lastId) {
+	            		lastId = aoid;
 	            		var p = {
 	            			_token: "{{ csrf_token() }}",
-	            			oid: args.node.id
+	            			oid: aoid
 	            		};
 	            		var container = $("#dv-navmenu");
 	            		$.post("{{ url('usuarios/ajax/dt-oficina') }}", p, function(response) {
@@ -199,7 +216,12 @@
         							).append(
         								$("<span/>").html(puesto.encargado + " ")
         							).append(
-        								$("<a/>").addClass("btn btn-success btn-xs").attr("href","#").html("Cambiar")
+        								$("<a/>").addClass("btn btn-success btn-xs").attr({
+        									"href": "#",
+        									"data-toggle": "modal",
+        									"data-target": "#modal-puesto",
+        									"data-oid": aoid
+        								}).html("Cambiar")
         							)
         						).append(
         							$("<p/>").append(
@@ -263,6 +285,41 @@
 				document.getElementById("dc-puesto").value = "";
 				$("#dc-jerarquia option[value=0]").prop("selected", true);
 				document.getElementById("dc-oficina").value = e.relatedTarget.dataset.oid;
+			});
+			$("#modal-puesto").on("show.bs.modal", function(args) {
+				var aoid = args.relatedTarget.dataset.oid;
+				var p = {
+					_token: "{{ csrf_token() }}",
+					ofc: aoid
+				};
+				$.post("{{ url('usuarios/ajax/ls-puestos') }}", p, function(response) {
+					if(response.success) {
+						var puestos = response.puestos;
+						var ps_lista = $("#ps-lista");
+						ps_lista.empty();
+						for(var i in puestos) {
+							var puesto = puestos[i];
+							ps_lista.append(
+								$("<a/>").attr("href","#").addClass("list-group-item list-group-item-action flex-column align-items-start").append(
+									$("<div/>").addClass("d-flex w-100 justify-content-between").append(
+										$("<h5/>").addClass("mb-1").html(puesto.text)
+									)
+								).data("pid",puesto.value).data("pnom",puesto.text).data("oid",aoid).on("click", function(evt) {
+									evt.preventDefault();
+									var a = $(this);
+									if(window.confirm("¿Desea asignar a " + a.data("pnom") + " como encargado del área?")) {
+										var q = { _token:"{{ csrf_token() }}", pid:a.data("pid"), oid:a.data("oid") };
+										$.post("{{ url('usuarios/ajax/sv-encargado') }}", q, function(rsp) {
+											if(rsp.success) location.reload();
+											else alert(rsp.msg);
+										}, "json");
+									}
+								})
+							);
+						}
+					}
+					else alert(response.msg);
+				}, "json");
 			});
 			$("#dp-guardar").on("click", function(e) {
 				e.preventDefault();

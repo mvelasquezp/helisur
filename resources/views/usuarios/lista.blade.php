@@ -40,14 +40,14 @@
 								<td class="text-center">{{ $empleado->ingreso }}</td>
 								<td>
 									@if($empleado->ofid != 0)
-									<a style="cursor:pointer" class="btn btn-primary btn-xs text-light">{{ $empleado->area }}</a>
+									<a style="cursor:pointer" class="btn btn-primary btn-xs text-light" title="{{ $empleado->area }}">{{ substr($empleado->area,0,25) }}</a>
 									@else
 									{{ $empleado->area }}
 									@endif
 								</td>
 								<td>
 									@if($empleado->ptid != 0)
-									<a style="cursor:pointer" class="btn btn-secondary btn-xs text-light">{{ $empleado->cargo }}</a>
+									<a style="cursor:pointer" class="btn btn-secondary btn-xs text-light" title="{{ $empleado->cargo }}">{{ substr($empleado->cargo,0,25) }}</a>
 									@else
 									{{ $empleado->cargo }}
 									@endif

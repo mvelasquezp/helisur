@@ -87,15 +87,25 @@ ADD COLUMN `st_verifica_mail` CHAR(1) NOT NULL DEFAULT 'N' AFTER `fe_ingreso`;
     public function organigrama() {
         $usuario = Auth::user();
         $oficinas = DB::table("ma_oficina as ofc")
+            ->leftJoin("ma_puesto as pst", function($join_usr) {
+                $join_usr->on("ofc.id_encargado", "=", "pst.id_puesto")
+                    ->on("ofc.id_empresa", "=", "pst.id_empresa")
+                    ->on("pst.st_vigente", "=", DB::raw("'S'"));
+            })
+            ->leftJoin("us_usuario_puesto as upt", function($join_upt) {
+                $join_upt->on("pst.id_puesto", "=", "upt.id_puesto")
+                    ->on("pst.id_empresa", "=", "upt.id_empresa")
+                    ->on("upt.st_vigente", "=", DB::raw("'S'"));
+            })
             ->leftJoin("us_usuario as usr", function($join_usr) {
-                $join_usr->on("usr.id_usuario", "=", "ofc.id_encargado")
-                    ->on("usr.id_empresa", "=", "ofc.id_empresa");
+                $join_usr->on("upt.id_usuario", "=", "usr.id_usuario")
+                    ->on("upt.id_empresa", "=", "usr.id_empresa");
             })
             ->leftJoin("ma_entidad as ent", "usr.cod_entidad", "=", "ent.cod_entidad")
             ->where("ofc.id_empresa", $usuario->id_empresa)
             ->select("ofc.id_oficina as id", "ofc.id_ancestro as parentId", "ofc.des_oficina as cargo",
-                DB::raw("ifnull(concat(ent.des_nombre_3,' ',ent.des_nombre_1,' ',ent.des_nombre_2),'(sin asignar)') as nombre"),
-                "usr.id_usuario as uid", "ofc.num_jerarquia as jer")
+                DB::raw("ifnull(concat(ent.des_nombre_3,' ',ent.des_nombre_1,' ',ent.des_nombre_2),'(encargado no asignado)') as nombre"),
+                "usr.id_usuario as uid", "ofc.num_jerarquia as jer", DB::raw("ifnull(pst.des_puesto,'(personal no asignado)') as puesto"))
             ->get();
         $arrOpts = [
             "usuario" => $usuario,
@@ -196,6 +206,24 @@ ADD COLUMN `st_verifica_mail` CHAR(1) NOT NULL DEFAULT 'N' AFTER `fe_ingreso`;
         ]);
     }
 
+    public function sv_encargado() {
+        extract(Request::input());
+        if(isset($oid, $pid)) {
+            $usuario = Auth::user();
+            DB::table("ma_oficina")
+                ->where("id_oficina", $oid)
+                ->where("id_empresa", $usuario->id_empresa)
+                ->update(["id_encargado" => $pid]);
+            return Response::json([
+                "success" => true
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+    }
+
     public function ls_puestos() {
         extract(Request::input());
         if(isset($ofc)) {
@@ -282,7 +310,7 @@ ADD COLUMN `st_verifica_mail` CHAR(1) NOT NULL DEFAULT 'N' AFTER `fe_ingreso`;
             }
             return Response::json([
                 "success" => false,
-                "puestos" => "Ya existe un usuario con código " . $cod
+                "msg" => "Ya existe un usuario con código " . $cod
             ]);
         }
         return Response::json([

@@ -35,6 +35,7 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 			Route::post("dt-oficina", "Usuarios@dt_oficina");
 			Route::post("sv-puesto", "Usuarios@sv_puesto");
 			Route::post("sv-cargo", "Usuarios@sv_cargo");
+			Route::post("sv-encargado", "Usuarios@sv_encargado");
 			Route::post("ls-puestos", "Usuarios@ls_puestos");
 			Route::post("sv-usuario", "Usuarios@sv_usuario");
 			Route::post("dt-usuario", "Usuarios@dt_usuario");
