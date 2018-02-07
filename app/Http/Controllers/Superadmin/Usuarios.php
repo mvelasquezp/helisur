@@ -84,6 +84,27 @@ ADD COLUMN `st_verifica_mail` CHAR(1) NOT NULL DEFAULT 'N' AFTER `fe_ingreso`;
         return view("usuarios.lista")->with($arrOpts);
     }
 
+    public function grupos() {
+        $usuario = Auth::user();
+        $grupos = DB::table("ev_afinidad as afn")
+            ->join("us_usuario as usr", function($join_usr) {
+                $join_usr->on("afn.id_usuario_registra", "=", "usr.id_usuario")
+                    ->on("afn.id_empresa", "=", "usr.id_empresa");
+            })
+            ->join("ma_entidad as ent", "usr.cod_entidad", "=", "ent.cod_entidad")
+            ->where("afn.id_empresa", $usuario->id_empresa)
+            ->where("afn.st_vigente", "S")
+            ->select("afn.id_afinidad as id", "afn.des_afinidad as nombre", DB::raw("concat(ent.des_nombre_1,' ',des_nombre_2,' ',des_nombre_3) as registra"),
+                DB::raw("date_format(afn.created_at,'%d-%m-%Y') as fecha"))
+            ->get();
+        $arrOpts = [
+            "usuario" => $usuario,
+            "menu" => 1,
+            "grupos" => $grupos
+        ];
+        return view("usuarios.grupos")->with($arrOpts);
+    }
+
     public function organigrama() {
         $usuario = Auth::user();
         $oficinas = DB::table("ma_oficina as ofc")

@@ -29,6 +29,7 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 	//modulo de usuarios
 	Route::prefix("usuarios")->group(function() {
 		Route::get("organigrama", "Usuarios@organigrama");
+		Route::get("grupos", "Usuarios@grupos");
 		Route::get("registro", "Usuarios@registro");
 		//peticiones post
 		Route::prefix("ajax")->group(function() {
