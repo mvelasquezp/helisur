@@ -87,20 +87,24 @@ ADD COLUMN `st_verifica_mail` CHAR(1) NOT NULL DEFAULT 'N' AFTER `fe_ingreso`;
     public function grupos() {
         $usuario = Auth::user();
         $grupos = DB::table("ev_afinidad as afn")
-            ->join("us_usuario as usr", function($join_usr) {
-                $join_usr->on("afn.id_usuario_registra", "=", "usr.id_usuario")
-                    ->on("afn.id_empresa", "=", "usr.id_empresa");
+            ->leftJoin("ev_afinidad_oficina as aof", function($join_aof) {
+                $join_aof->on("afn.id_afinidad", "=", "aof.id_afinidad")
+                    ->on("afn.id_empresa", "=", "aof.id_empresa");
             })
-            ->join("ma_entidad as ent", "usr.cod_entidad", "=", "ent.cod_entidad")
-            ->where("afn.id_empresa", $usuario->id_empresa)
             ->where("afn.st_vigente", "S")
-            ->select("afn.id_afinidad as id", "afn.des_afinidad as nombre", DB::raw("concat(ent.des_nombre_1,' ',des_nombre_2,' ',des_nombre_3) as registra"),
-                DB::raw("date_format(afn.created_at,'%d-%m-%Y') as fecha"))
+            ->select("afn.id_afinidad as id", "afn.des_afinidad as nombre", DB::raw("count(aof.id_oficina) as areas"))
+            ->groupBy("id","nombre")
+            ->get();
+        $oficinas = DB::table("ma_oficina")
+            ->where("st_oficina", "S")
+            ->select("id_oficina as value", "des_oficina as text")
+            ->orderBy("des_oficina", "asc")
             ->get();
         $arrOpts = [
             "usuario" => $usuario,
             "menu" => 1,
-            "grupos" => $grupos
+            "grupos" => $grupos,
+            "oficinas" => $oficinas
         ];
         return view("usuarios.grupos")->with($arrOpts);
     }
@@ -456,6 +460,71 @@ ADD COLUMN `st_verifica_mail` CHAR(1) NOT NULL DEFAULT 'N' AFTER `fe_ingreso`;
             return Response::json([
                 "success" => false,
                 "puestos" => "La información ingresada es inválida. Intente nuevamente"
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+    }
+
+    public function sv_grupo() {
+        extract(Request::input());
+        if(isset($nom)) {
+            $usuario = Auth::user();
+            DB::table("ev_afinidad")->insert([
+                "id_empresa" => $usuario->id_empresa,
+                "des_afinidad" => $nom,
+                "id_usuario_registra" => $usuario->id_usuario,
+                "st_vigente" => "S"
+            ]);
+            return Response::json([
+                "success" => true
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+    }
+
+    public function ls_areas_afines() {
+        extract(Request::input());
+        if(isset($gid)) {
+            $usuario = Auth::user();
+            $oficinas = DB::table("ev_afinidad_oficina as aof")
+                ->join("ma_oficina as ofc", function($join_ofc) {
+                    $join_ofc->on("aof.id_oficina", "=", "ofc.id_oficina")
+                        ->on("aof.id_empresa", "=", "ofc.id_empresa")
+                        ->on("ofc.st_oficina", "=", DB::raw("'S'"));
+                })
+                ->where("aof.id_afinidad", $gid)
+                ->select("aof.id_oficina as value", "ofc.des_oficina as text")
+                ->get();
+            return Response::json([
+                "success" => true,
+                "oficinas" => $oficinas
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+    }
+
+    public function sv_oficina() {
+        extract(Request::input());
+        if(isset($gid, $oid)) {
+            $usuario = Auth::user();
+            DB::table("ev_afinidad_oficina")->insert([
+                "id_afinidad" => $gid,
+                "id_empresa" => $usuario->id_empresa,
+                "id_oficina" => $oid,
+                "id_usuario_registra" => $usuario->id_usuario,
+                "st_vigente" => "S"
+            ]);
+            return Response::json([
+                "success" => true
             ]);
         }
         return Response::json([
