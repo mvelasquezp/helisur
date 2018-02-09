@@ -35,10 +35,21 @@ class Encuestas extends Controller {
             ->groupBy("id","nombre","inicio","fin","preguntas","estado")
             ->orderBy("estado", "asc")
             ->get();
+        $preguntas = DB::table("ma_pregunta as prg")
+            ->join("ev_grupo as grp", "prg.id_grupo", "=", "grp.id_grupo")
+            ->join("ev_concepto as cnc", "prg.id_concepto", "=", "cnc.id_concepto")
+            ->join("ev_categoria as cat", "prg.id_categoria", "=", "cat.id_categoria")
+            ->join("ev_subcategoria as sct", "prg.id_subcategoria", "=", "sct.id_subcategoria")
+            ->where("prg.st_vigente", "S")
+            ->select("prg.id_pregunta as id", "prg.des_pregunta as texto", "grp.des_grupo as grupo", "cnc.des_concepto as concepto",
+                "cat.des_categoria as categoria", "sct.des_subcategoria as subcategoria")
+            ->orderBy("prg.des_pregunta", "asc")
+            ->get();
         $arrOpts = [
             "usuario" => $usuario,
             "menu" => 3,
-            "encuestas" => $encuestas
+            "encuestas" => $encuestas,
+            "preguntas" => $preguntas
         ];
         return view("encuestas.programacion")->with($arrOpts);
     }
@@ -84,6 +95,36 @@ class Encuestas extends Controller {
             ]);
             return Response::json([
                 "success" => true
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+    }
+
+    public function dt_encuesta() {
+        extract(Request::input());
+        if(isset($eid)) {
+            $usuario = Auth::user();
+            $encuesta = DB::table("ma_encuesta")
+                ->where("id_encuesta", $eid)
+                ->where("id_empresa", $usuario->id_empresa)
+                ->select("des_encuesta as nom", "des_descripcion as descripcion", DB::raw("date_format(fe_inicio,'%d-%m-%Y') as inicio"),
+                    DB::raw("date_format(fe_fin,'%d-%m-%Y') as fin"))
+                ->first();
+            $preguntas = DB::table("ev_cuestionario")
+                ->where("id_encuesta", $eid)
+                ->where("id_empresa", $usuario->id_empresa)
+                ->select("id_encuesta as id", DB::raw("group_concat(distinct id_pregunta order by num_orden asc separator ',') as preguntas"))
+                ->groupBy("id_encuesta")
+                ->first();
+            return Response::json([
+                "success" => true,
+                "data" => [
+                    "encuesta" => $encuesta,
+                    "preguntas" => $preguntas
+                ]
             ]);
         }
         return Response::json([

@@ -71,6 +71,7 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 		Route::prefix("ajax")->group(function() {
 			//encuestas/ajax
 			Route::post("sv-encuesta", "Encuestas@sv_encuesta");
+			Route::post("dt-encuesta", "Encuestas@dt_encuesta");
 		});
 	});
 	//modulo de resultados
