@@ -132,7 +132,15 @@
 									</div>
 								</div>
 								<!-- tab resumen -->
-								<div class="tab-pane fade" id="nav-usuarios" role="tabpanel" aria-labelledby="nav-usuarios-tab">...</div>
+								<div class="tab-pane fade" id="nav-usuarios" role="tabpanel" aria-labelledby="nav-usuarios-tab">
+									<div class="row">
+										<div class="col">
+											<h5 class="text-danger">No se han programado evaluaciones para esta encuesta</h5>
+											<p>Utilice el botón "Programar encuestas" para realizar la asignación de evaluadores y evaluados. El sistema programará las evaluaciones de manera automática, en base a la jerarquía de los puestos y las áreas afines.</p>
+											<a href="#" class="btn btn-success btn-sm">Programar encuestas</a>
+										</div>
+									</div>
+								</div>
 							</div>
 						</nav>
 					</div>
