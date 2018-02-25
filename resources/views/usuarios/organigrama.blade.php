@@ -71,27 +71,15 @@
 								<label for="dc-jerarquia">Tipo puesto:</label>
 								<select id="dc-jerarquia" class="form-control form-control-sm">
 									<option selected disabled>Seleccione</option>
-									<option value="1">Gerente General</option>
-									<option value="2">Auditor Interno</option>
-									<option value="3">Gerente</option>
-									<option value="4">Sub Gerente</option>
-									<option value="5">Jefe</option>
-									<option value="6">Contador General</option>
-									<option value="7">Piloto</option>
-									<option value="8">Copiloto</option>
-									<option value="9">Supervisor</option>
-									<option value="10">Reparador</option>
-									<option value="11">Especialista</option>
-									<option value="12">Inspector</option>
-									<option value="13">Encargado</option>
-									<option value="13">Coordinador</option>
-									<option value="14">Estructurista</option>
-									<option value="15">Mecanico</option>
-									<option value="16">Radio Operador</option>
-									<option value="17">Certificador</option>
-									<option value="18">Aviónico</option>
-									<option value="19">Analista</option>
-									<option value="20">Asistente</option>
+									<option value=1>GERENTE GENERAL</option>
+									<option value=2>GERENTE</option>
+									<option value=3>SUB GERENTE / JEFE / CONTADOR GENERAL / COORDINADOR </option>
+									<option value=4>ENCARGADO / PILOTO/ SUPERVISOR / SUPERVISOR BRIGADA / INSPECTOR / SUB-CONTADOR</option>
+									<option value=5>ESPECIALISTA / ANALISTA / COPILOTO / SUPERVISOR TECNICO / INSTRUCTOR - COORDINADOR / ASISTENTE AUDITOR / COORDINADOR CCO</option>
+									<option value=6>ASISTENTE / ASISTENTE GERENCIA / ASISTENTE INGENIERIA / MECANICO / AVIONICO / INSPECTOR PND / OPERCOM</option>
+									<option value=7>ASISTENTE ADMINISTRATIVO / REPARADOR / ESTRUCTURISTA </option>
+									<option value=8>PINTOR / AUXILIAR / AUXILIAR ADMINISTRATIVO</option>
+									<option value=9>PRACTICANTES</option>
 								</select>
 							</div>
 						</form>

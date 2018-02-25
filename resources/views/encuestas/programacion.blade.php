@@ -68,9 +68,9 @@
 						<input type="hidden" id="modal-gestionar-id">
 						<nav>
 							<div class="nav nav-tabs" id="nav-tab" role="tablist">
-								<a class="nav-item nav-link active" id="nav-resumen-tab" data-toggle="tab" href="#nav-resumen" role="tab" aria-controls="nav-resumen" aria-selected="true">Resumen</a>
+								<a class="nav-item nav-link active" id="nav-resumen-tab" data-toggle="tab" href="#nav-resumen" role="tab" aria-controls="nav-resumen" aria-selected="true">Datos de encuesta</a>
 								<a class="nav-item nav-link" id="nav-preguntas-tab" data-toggle="tab" href="#nav-preguntas" role="tab" aria-controls="nav-preguntas" aria-selected="false">Preguntas</a>
-								<a class="nav-item nav-link" id="nav-usuarios-tab" data-toggle="tab" href="#nav-usuarios" role="tab" aria-controls="nav-usuarios" aria-selected="false">Encuestados</a>
+								<a class="nav-item nav-link" id="nav-usuarios-tab" data-toggle="tab" href="#nav-usuarios" role="tab" aria-controls="nav-usuarios" aria-selected="false">Evaluados</a>
 							</div>
 							<div class="tab-content" id="nav-tabContent">
 								<!-- tab resumen -->
