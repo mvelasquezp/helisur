@@ -88,31 +88,17 @@ class Encuestas extends Controller {
         $encuesta = DB::table("ma_encuesta")
             ->where("id_encuesta", $eid)
             ->where("id_empresa", $usuario->id_empresa)
-            ->select("des_encuesta as nombre")
+            ->select("des_encuesta as nombre", "id_encuesta as id")
             ->first();
         $jerarquias = DB::table("ma_jerarquias as jer")
             ->select("jer.des_jerarquia as descripcion", "jer.num_jerarquia as numero")
             ->orderBy("jer.num_jerarquia", "asc")
             ->get();
-        $puestos = [];
-        foreach ($jerarquias as $idx => $jerarquia) {
-            $cargos = DB::table("ma_puesto as pst")
-                ->leftJoin("ma_oficina as ofc", function($join_ofc) {
-                    $join_ofc->on("pst.id_oficina", "=", "ofc.id_oficina")
-                        ->on("pst.id_empresa", "=", "ofc.id_empresa");
-                })
-                ->where("pst.num_jerarquia", $jerarquia->numero)
-                ->where("pst.id_empresa", $usuario->id_empresa)
-                ->select("pst.id_puesto as  id","pst.des_puesto as puesto", "ofc.des_oficina as oficina")
-                ->get();
-            $puestos[$idx] = $cargos;
-        }
         $arrOpts = [
             "usuario" => $usuario,
             "menu" => 3,
             "encuesta" => $encuesta,
-            "jerarquias" => $jerarquias,
-            "puestos" => $puestos
+            "jerarquias" => $jerarquias
         ];
         return view("encuestas.asigna_evaluaciones")->with($arrOpts);
         //return "<p>Programaré la encuesta $eid</p>";
@@ -174,6 +160,55 @@ class Encuestas extends Controller {
                     "programacion" => $programacion
                 ]
             ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+    }
+
+    public function ls_cargos() {
+        extract(Request::input());
+        if(isset($jrs)) {
+            $usuario = Auth::user();
+            $puestos = DB::table("ma_puesto as pst")
+                ->leftJoin("ma_oficina as ofc", function($join_ofc) {
+                    $join_ofc->on("pst.id_empresa", "=", "ofc.id_empresa")
+                        ->on("pst.id_oficina", "=", "ofc.id_oficina");
+                })
+                ->whereIn("pst.num_jerarquia", $jrs)
+                ->where("pst.id_empresa", $usuario->id_empresa)
+                ->where("pst.st_vigente", "S")
+                ->select("pst.id_puesto as id", "pst.num_jerarquia as num", DB::raw("ifnull(ofc.des_oficina,'(sin asignar)') as oficina"), "pst.des_puesto as puesto")
+                ->orderBy("pst.num_jerarquia", "asc")
+                ->get();
+            return Response::json([
+                "success" => true,
+                "data" => [
+                    "puestos" => $puestos
+                ]
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+    }
+
+    public function sv_programacion() {
+        extract(Request::input());
+        if(isset($eid, $arr)) {
+            foreach ($arr as $idx => $puesto) {
+                $usuarios = DB::table("us_usuario_puesto as upt")
+                    ->join("us_usuario as usr", function($join_usr) {
+                        $join_usr->on("upt.id_usuario", "=", "usr.id_usuario")
+                            ->on("upt.id_empresa", "=", "usr.id_empresa");
+                    })
+                    ->where("upt.st_vigente", "S")
+                    ->where(DB::raw("timestampdiff(month, usr.fe_ingreso, current_timestamp)"), ">=", 6)
+                    ->select("upt.id_usuario", "upt.id_puesto", "upt.id_empresa")
+                    ->get();
+            }
         }
         return Response::json([
             "success" => false,

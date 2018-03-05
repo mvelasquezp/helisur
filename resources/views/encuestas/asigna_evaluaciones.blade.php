@@ -7,62 +7,148 @@
 			.card-header{padding:0.1rem 0.5rem}
 			.card-body{padding:0.5rem 1rem}
 			.card-body>ul{list-style:none;margin:0;padding:0;}
+			.list-group-item>label{margin:0}
+			.v-separator{height:10px}
+			.hd-puesto{display:none}
+			.page-title{margin:0}
 		</style>
 	</head>
 	<body>
 		@include("common.navbar")
+		<div class="v-separator"></div>
 		<div class="container">
 			<div class="row">
-				<div class="col">
-					<h3 class="text-primary">{{ $encuesta->nombre }} | Programar evaluadores</h3>
-				</div>
-			</div>
-			<hr>
-			<div class="row">
 				<div class="col-4">
-					<p class="text-secondary">
-						<a href="#" class="btn btn-success btn-sm"><i class="fa fa-refresh"></i> Cargar los puestos que evaluarán</a>
-						<a href="#" class="btn btn-info btn-sm"><i class="fa fa-info"></i> Ayuda</a>
-					</p>
-					<div class="multi-collapse">
+					<ul class="list-group">
 					@foreach($jerarquias as $idx => $jerarquia)
-						<div class="card">
-							<div class="card-header" id="dv-acc-header-{{ $jerarquia->numero }}">
-								<h5 class="mb-0">
-									<button class="btn btn-link" data-toggle="collapse" data-target="#dv-acc-puesto-{{ $jerarquia->numero }}" aria-expanded="true" aria-controls="collapseOne">Nivel {{ $jerarquia->numero }}</button>
-								</h5>
-							</div>
-							<div id="dv-acc-puesto-{{ $jerarquia->numero }}" class="collapse" aria-labelledby="dv-acc-header-{{ $jerarquia->numero }}" data-parent="#accordion">
-								<div class="card-body">
-									<ul>
-										<li><label><input type="checkbox" id="chb-acc-all-{{ $jerarquia->numero }}" class="ch-all"><tag>&nbsp;Seleccionar todo</tag></label></li>
-										@foreach($puestos[$idx] as $jdx => $puesto)
-										<li><label><input type="checkbox" value="{{ $puesto->id }}" class="ch-unique">&nbsp;{{ $puesto->puesto }} [{{ $puesto->oficina }}]</label></li>
-										@endforeach
-									</ul>
-								</div>
-							</div>
-						</div>
+						<li class="list-group-item list-group-item-action">
+							<label for="ch-selector-{{ $jerarquia->numero }}" class="d-flex justify-content-between align-items-center" style="width:100%;">
+								<span>Nivel {{ $jerarquia->numero }}</span>
+								<input id="ch-selector-{{ $jerarquia->numero }}" type="checkbox" class="ch-selector" value="{{ $jerarquia->numero }}">
+							</label>
+						</li>
 					@endforeach
+					</ul>
+				</div>
+				<div class="col-8">
+					<div class="row">
+						<div class="col">
+							<div class="d-flex justify-content-between align-items-center">
+								<h5 class="page-title text-primary">{{ $encuesta->nombre }} | Programar evaluadores</h5>
+								<a href="#" id="btn-programar" class="btn btn-success btn-sm">Programar las evaluaciones</a>
+							</div>
+							<div class="v-separator"></div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col">
+							<table class="table table-striped">
+								<thead>
+									<tr>
+										<th>Jer.</th>
+										<th>Área</th>
+										<th>Puesto</th>
+										<th>
+											<a href="#" id="btn-ch-all" class="btn btn-xs btn-primary">Seleccionar todo</a>
+										</th>	
+									</tr>
+								</thead>
+								<tbody id="tbody-pst"></tbody>
+							</table>
+						</div>
 					</div>
 				</div>
-				<div class="col-8">columna derecha</div>
 			</div>
 		</div>
 		<!-- JS -->
 		@include("common.scripts")
 		<script type="text/javascript">
-			$(".ch-all").on("change", function() {
+			$(".ch-selector").prop("disabled", false).prop("checked", false);
+			$(".ch-selector").on("change", function() {
 				var ch = $(this);
-				if(ch.prop("checked")) {
-					ch.parent().parent().parent().children("li").children("label").children(".ch-unique").prop("checked", true);
-					ch.next().html("&nbsp;Desmarcar todo");
+				$(".ch-selector").prop("disabled", true);
+				var jrs = new Array();
+				var inputs = $(".ch-selector:checked");
+				$.each(inputs, function() {
+					jrs.push($(this).val());
+				});
+				var p = {
+					_token: "{{ csrf_token() }}",
+					jrs: jrs
+				};
+				$.post("{{ url('encuestas/ajax/ls-cargos') }}", p, function(response) {
+					if(response.success) {
+						$("#tbody-pst").empty();
+						var puestos = response.data.puestos;
+						for(var i in puestos) {
+							var puesto = puestos[i];
+							$("#tbody-pst").append(
+								$("<tr/>").append(
+									$("<td/>").html(puesto.num)
+								).append(
+									$("<td/>").html(puesto.oficina)
+								).append(
+									$("<td/>").html(puesto.puesto)
+								).append(
+									$("<td/>").append(
+										$("<label/>").addClass("btn btn-xs btn-danger").append(
+											$("<span/>").html("No programado")
+										).append(
+											$("<input/>").addClass("hd-puesto").attr("type","checkbox").val(puesto.id).on("change",hdPuestoOnChange)
+										)
+									)
+								)
+							);
+						}
+					}
+					else alert(response.msg);
+					$(".ch-selector").prop("disabled", false);
+				}, "json").fail(function(error) {
+					console.log(error);
+					$(".ch-selector").prop("disabled", false);
+				});
+			});
+			$("#btn-ch-all").on("click", function(event) {
+				event.preventDefault();
+				$(".hd-puesto").prop("checked", true).trigger("change");
+			});
+			$("#btn-programar").on("click", function(event) {
+				event.preventDefault();
+				var ids = $(".hd-puesto:checked");
+				var inputs = new Array();
+				$.each(ids, function() {
+					inputs.push($(this).val());
+				});
+				var p = {
+					_token: "{{ csrf_token() }}",
+					eid: "{{ $encuesta->id }}",
+					arr: inputs
+				};
+				$("input").prop("disabled", true);
+				$("#btn-programar").hide();
+				$.post("{{ url('encuestas/ajax/sv-programacion') }}", p, function(response) {
+					if(response.success) {
+						//
+					}
+					else alert(response.msg);
+					$("input").prop("disabled", false);
+					$("#btn-programar").show();
+				}, "json").fail(function() {
+					$("input").prop("disabled", false);
+					$("#btn-programar").show();
+				});
+			});
+			function hdPuestoOnChange(event) {
+				var input = $(this);
+				if(input.prop("checked")) {
+					input.prev().html("Programado");
+					input.parent().removeClass("btn-danger").addClass("btn-primary");
 				}
 				else {
-					ch.parent().parent().parent().children("li").children("label").children(".ch-unique").prop("checked", false);
-					ch.next().html("&nbsp;Seleccionar todo");
+					input.prev().html("No programado");
+					input.parent().removeClass("btn-primary").addClass("btn-danger");
 				}
-			});
+			}
 		</script>
 	</body>
 </html>
