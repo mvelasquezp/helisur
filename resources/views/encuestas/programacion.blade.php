@@ -137,7 +137,7 @@
 										<div class="col">
 											<h5 class="text-danger">No se han programado evaluaciones para esta encuesta</h5>
 											<p>Utilice el botón "Programar encuestas" para realizar la asignación de evaluadores y evaluados. El sistema programará las evaluaciones de manera automática, en base a la jerarquía de los puestos y las áreas afines.</p>
-											<a href="#" class="btn btn-success btn-sm">Programar encuestas</a>
+											<a id="btn-programar" href="#" class="btn btn-success btn-sm">Programar encuestas</a>
 										</div>
 									</div>
 								</div>
@@ -206,12 +206,14 @@
 				var ds = args.relatedTarget.dataset;
 				$("#modal-gestionar .modal-title").html("Editando: " + ds.nom);
 				document.getElementById("modal-gestionar-id").value = ds.eid;
+				$("#btn-programar").attr("href","{{ url('encuestas/programacion/evaluadores') }}/" + ds.eid);
 				//cargar informacion de la encuesta
 				var p = { _token:"{{ csrf_token() }}",eid:ds.eid };
 				$.post("{{ url('encuestas/ajax/dt-encuesta') }}", p, function(response) {
 					if(response.success) {
 						var dencuesta = response.data.encuesta;
 						var dpreguntas = response.data.preguntas ? response.data.preguntas : '0';
+						var dprogramacion = response.data.programacion;
 						//carga resumen
 						document.getElementById("de-descripcion").value = dencuesta.descripcion;
 						document.getElementById("de-inicio").value = dencuesta.inicio;
@@ -247,6 +249,10 @@
 									)
 								);
 							}
+						}
+						//programacion
+						if(dprogramacion.length > 0) {
+							$("#nav-usuarios>.row>.col").empty().html("<h1>hay programacion</h1>");
 						}
 					}
 					else alert(response.msg);

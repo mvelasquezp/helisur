@@ -64,7 +64,10 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 	//modulo de encuestas
 	Route::prefix("encuestas")->group(function() {
 		//encuestas
-		Route::get("programacion", "Encuestas@programacion");
+		Route::prefix("programacion")->group(function() {
+			Route::get("/", "Encuestas@programacion");
+			Route::get("evaluadores/{eid}", "Encuestas@evaluadores");
+		});
 		Route::get("anteriores", "Encuestas@anteriores");
 		Route::get("informe", "Encuestas@informe");
 		Route::get("lanzamiento", "Encuestas@lanzamiento");

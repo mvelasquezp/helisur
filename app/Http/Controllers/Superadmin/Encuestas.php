@@ -81,6 +81,43 @@ class Encuestas extends Controller {
         return view("encuestas.lanzamiento")->with($arrOpts);
     }
 
+    //extras
+
+    public function evaluadores($eid) {
+        $usuario = Auth::user();
+        $encuesta = DB::table("ma_encuesta")
+            ->where("id_encuesta", $eid)
+            ->where("id_empresa", $usuario->id_empresa)
+            ->select("des_encuesta as nombre")
+            ->first();
+        $jerarquias = DB::table("ma_jerarquias as jer")
+            ->select("jer.des_jerarquia as descripcion", "jer.num_jerarquia as numero")
+            ->orderBy("jer.num_jerarquia", "asc")
+            ->get();
+        $puestos = [];
+        foreach ($jerarquias as $idx => $jerarquia) {
+            $cargos = DB::table("ma_puesto as pst")
+                ->leftJoin("ma_oficina as ofc", function($join_ofc) {
+                    $join_ofc->on("pst.id_oficina", "=", "ofc.id_oficina")
+                        ->on("pst.id_empresa", "=", "ofc.id_empresa");
+                })
+                ->where("pst.num_jerarquia", $jerarquia->numero)
+                ->where("pst.id_empresa", $usuario->id_empresa)
+                ->select("pst.id_puesto as  id","pst.des_puesto as puesto", "ofc.des_oficina as oficina")
+                ->get();
+            $puestos[$idx] = $cargos;
+        }
+        $arrOpts = [
+            "usuario" => $usuario,
+            "menu" => 3,
+            "encuesta" => $encuesta,
+            "jerarquias" => $jerarquias,
+            "puestos" => $puestos
+        ];
+        return view("encuestas.asigna_evaluaciones")->with($arrOpts);
+        //return "<p>Programaré la encuesta $eid</p>";
+    }
+
     //ajax
 
     public function sv_encuesta() {
@@ -119,11 +156,22 @@ class Encuestas extends Controller {
                 ->select("id_encuesta as id", DB::raw("group_concat(distinct id_pregunta order by num_orden asc separator ',') as preguntas"))
                 ->groupBy("id_encuesta")
                 ->first();
+            $programacion = DB::table("ev_evaluacion as evl")
+                ->join("us_usuario as usr", function($join_usr) {
+                    $join_usr->on("evl.id_usuario", "=", "usr.id_usuario")
+                        ->on("evl.id_empresa", "=", "usr.id_empresa");
+                })
+                ->join("ma_entidad as ent", "usr.cod_entidad", "=", "ent.cod_entidad")
+                ->where("evl.id_encuesta", $eid)
+                ->where("evl.id_empresa", $usuario->id_empresa)
+                ->select(DB::raw("concat(ent.des_nombre_3,' ',ent.des_nombre_1,' ',ent.des_nombre_2) as nombre"), "evl.st_evaluacion as estado", "evl.nu_progreso as progreso")
+                ->get();
             return Response::json([
                 "success" => true,
                 "data" => [
                     "encuesta" => $encuesta,
-                    "preguntas" => $preguntas
+                    "preguntas" => $preguntas,
+                    "programacion" => $programacion
                 ]
             ]);
         }
