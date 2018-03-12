@@ -117,6 +117,14 @@
 				</div>
 			</div>
 		</div>
+		<script type="text/javascript">
+			document.getElementById("ins-evaluador").value = "";
+			document.getElementById("ins-eva").value = "";
+			document.getElementById("ins-peva").value = "";
+			document.getElementById("ins-evaluado").value = "";
+			document.getElementById("ins-evo").value = "";
+			document.getElementById("ins-pevo").value = "";
+		</script>
 		@else
 		<div class="container">
 			<div class="row">
@@ -196,12 +204,6 @@
 		<!-- JS -->
 		@include("common.scripts")
 		<script type="text/javascript">
-			document.getElementById("ins-evaluador").value = "";
-			document.getElementById("ins-eva").value = "";
-			document.getElementById("ins-peva").value = "";
-			document.getElementById("ins-evaluado").value = "";
-			document.getElementById("ins-evo").value = "";
-			document.getElementById("ins-pevo").value = "";
 			$(".ch-selector").prop("disabled", false).prop("checked", false);
 			$(".ch-selector").on("change", function() {
 				var ch = $(this);

@@ -3,6 +3,10 @@
 	<head>
 		<title>Sistema de Gestión de Competencias de Helisur</title>
 		@include("common.styles")
+		<style type="text/css">
+			.no-margin>*{margin:2px 0}
+			.no-margin>.text-secondary{font-size:11px}
+		</style>
 	</head>
 	<body>
 		@include("common.navbar")
@@ -244,7 +248,7 @@
 										$("<td/>").append(
 											$("<a/>").attr("href","#").addClass("btn btn-success btn-xs").append(
 												$("<i/>").addClass("fa fa-plus")
-											).on("click",AgregarPregunta)
+											).on("click", AgregarPregunta)
 										)
 									)
 								);
@@ -252,7 +256,48 @@
 						}
 						//programacion
 						if(dprogramacion.length > 0) {
-							$("#nav-usuarios>.row>.col").empty().html("<h1>hay programacion</h1>");
+							var tbody = $("<tbody/>")
+							for(var i in dprogramacion) {
+								var fila = dprogramacion[i];
+								tbody.append(
+									$("<tr/>").append(
+										$("<td/>").addClass("no-margin").append(
+											$("<p/>").addClass("text-dark").html(fila.neva)
+										).append(
+											$("<p/>").addClass("text-secondary").html(fila.peva + " | " + fila.oeva)
+										)
+									).append(
+										$("<td/>").addClass("no-margin").append(
+											$("<p/>").addClass("text-dark").html(fila.nevo)
+										).append(
+											$("<p/>").addClass("text-secondary").html(fila.pevo + " | " + fila.oevo)
+										)
+									)
+								);
+							}
+							$("#nav-usuarios>.row>.col").empty().append(
+								$("<table/>").addClass("table").append(
+									$("<thead/>").append(
+										$("<tr/>").append(
+											$("<th/>").html("Evaluador")
+										).append(
+											$("<th/>").html("Evaluado")
+										)
+									)
+								).append(tbody)
+							);
+						}
+						else {
+							$("#nav-usuarios>.row>.col").empty().append(
+								$("<h5/>").addClass("text-danger").html("No se han programado evaluaciones para esta encuesta")
+							).append(
+								$("<p/>").html('Utilice el botón "Programar encuestas" para realizar la asignación de evaluadores y evaluados. El sistema programará las evaluaciones de manera automática, en base a la jerarquía de los puestos y las áreas afines.')
+							).append(
+								$("<a/>").attr({
+									"id": "btn-programar",
+									"href": "{{ url('encuestas/programacion/evaluadores') }}/" + ds.eid
+								}).addClass("btn btn-success btn-sm").html("Programar encuestas")
+							);
 						}
 					}
 					else alert(response.msg);

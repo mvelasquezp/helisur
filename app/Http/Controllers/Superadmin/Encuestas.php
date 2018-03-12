@@ -185,15 +185,46 @@ class Encuestas extends Controller {
                 ->select("id_encuesta as id", DB::raw("group_concat(distinct id_pregunta order by num_orden asc separator ',') as preguntas"))
                 ->groupBy("id_encuesta")
                 ->first();
-            $programacion = DB::table("ev_evaluacion as evl")
-                ->join("us_usuario as usr", function($join_usr) {
-                    $join_usr->on("evl.id_usuario", "=", "usr.id_usuario")
-                        ->on("evl.id_empresa", "=", "usr.id_empresa");
+            $programacion = DB::table("ev_evaluacion as eval")
+                ->join("us_usuario_puesto as upta", function($join_upta) {
+                    $join_upta->on("eval.id_usuario", "=", "upta.id_usuario")
+                        ->on("eval.id_empresa", "=", "upta.id_empresa");
                 })
-                ->join("ma_entidad as ent", "usr.cod_entidad", "=", "ent.cod_entidad")
-                ->where("evl.id_encuesta", $eid)
-                ->where("evl.id_empresa", $usuario->id_empresa)
-                ->select(DB::raw("concat(ent.des_nombre_3,' ',ent.des_nombre_1,' ',ent.des_nombre_2) as nombre"), "evl.st_evaluacion as estado", "evl.nu_progreso as progreso")
+                ->join("us_usuario as usra", function($join_usra) {
+                    $join_usra->on("upta.id_usuario", "=", "usra.id_usuario")
+                        ->on("upta.id_empresa", "=", "usra.id_empresa");
+                })
+                ->join("ma_entidad as enta", "usra.cod_entidad", "=", "enta.cod_entidad")
+                ->join("ma_puesto as psta", function($join_psta) {
+                    $join_psta->on("eval.id_puesto", "=", "psta.id_puesto")
+                        ->on("upta.id_empresa", "=", "psta.id_empresa");
+                })
+                ->join("ma_oficina as ofca", function($join_ofca) {
+                    $join_ofca->on("psta.id_oficina", "=", "ofca.id_oficina")
+                        ->on("psta.id_empresa", "=", "ofca.id_empresa");
+                })
+                ->join("us_usuario_puesto as uptb", function($join_uptb) {
+                    $join_uptb->on("eval.id_evaluador", "=", "uptb.id_usuario")
+                        ->on("eval.id_empresa", "=", "uptb.id_empresa");
+                })
+                ->join("us_usuario as usrb", function($join_usrb) {
+                    $join_usrb->on("uptb.id_usuario", "=", "usrb.id_usuario")
+                        ->on("uptb.id_empresa", "=", "usrb.id_empresa");
+                })
+                ->join("ma_entidad as entb", "usrb.cod_entidad", "=", "entb.cod_entidad")
+                ->join("ma_puesto as pstb", function($join_pstb) {
+                    $join_pstb->on("eval.id_puesto_evaluador", "=", "pstb.id_puesto")
+                        ->on("uptb.id_empresa", "=", "pstb.id_empresa");
+                })
+                ->join("ma_oficina as ofcb", function($join_ofcb) {
+                    $join_ofcb->on("pstb.id_oficina", "=", "ofcb.id_oficina")
+                        ->on("pstb.id_empresa", "=", "ofcb.id_empresa");
+                })
+                ->select(DB::raw("concat(enta.des_nombre_1,' ',enta.des_nombre_2,', ',enta.des_nombre_3) as nevo"),"psta.des_puesto as pevo",
+                    "ofca.des_oficina as oevo",DB::raw("concat(entb.des_nombre_1,' ',entb.des_nombre_2,', ',entb.des_nombre_3) as neva"),
+                    "pstb.des_puesto as peva","ofcb.des_oficina as oeva")
+                ->orderBy("neva","asc")
+                ->orderBy("nevo", "asc")
                 ->get();
             return Response::json([
                 "success" => true,
