@@ -80,6 +80,7 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 			Route::post("sv-programacion", "Encuestas@sv_programacion");
 			Route::post("bsq-usuarios", "Encuestas@bsq_usuarios");
 			Route::post("sv-programacion-individual", "Encuestas@sv_programacion_individual");
+			Route::post("sv-programa-encuesta", "Encuestas@sv_programa_encuesta");
 		});
 	});
 	//modulo de resultados

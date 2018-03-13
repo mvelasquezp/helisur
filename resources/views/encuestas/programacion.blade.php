@@ -3,6 +3,7 @@
 	<head>
 		<title>Sistema de Gestión de Competencias de Helisur</title>
 		@include("common.styles")
+		<link rel="stylesheet" type="text/css" href="{{ asset('css/bootstrap-datepicker3.min.css') }}">
 		<style type="text/css">
 			.no-margin>*{margin:2px 0}
 			.no-margin>.text-secondary{font-size:11px}
@@ -34,7 +35,11 @@
 								{{ $encuesta->publico }} usuario(s) programado(s)
 								@endif
 							</p>
+							@if(strcmp($encuesta->estado, "Creada") == 0)
 							<a href="#" class="btn btn-primary" data-toggle="modal" data-target="#modal-gestionar" data-eid="{{ $encuesta->id }}" data-nom="{{ $encuesta->nombre }}">Administrar</a>
+							@elseif(strcmp($encuesta->estado, "Pendiente") == 0)
+							<a href="#" class="btn btn-success" data-toggle="modal" data-target="#modal-gestionar" data-eid="{{ $encuesta->id }}" data-nom="{{ $encuesta->nombre }}">Revisar</a>
+							@endif
 						</div>
 					</div>
 					@endforeach
@@ -90,11 +95,11 @@
 											<div class="form-row">
 												<div class="form-group col-6">
 													<label for="de-inicio">Inicio encuesta</label>
-													<input type="text" class="form-control" id="de-inicio" placeholder="dd-mm-yyyy">
+													<input type="text" class="form-control datepicker" id="de-inicio" placeholder="dd-mm-yyyy">
 												</div>
 												<div class="form-group col-6">
 													<label for="de-fin">Fin encuesta</label>
-													<input type="text" class="form-control" id="de-fin" placeholder="dd-mm-yyyy">
+													<input type="text" class="form-control datepicker" id="de-fin" placeholder="dd-mm-yyyy">
 												</div>
 											</div>
 										</form>
@@ -149,7 +154,7 @@
 						</nav>
 					</div>
 					<div class="modal-footer">
-						<button type="button" class="btn btn-primary"><i class="fa fa-floppy-o"></i> Guardar cambios</button>
+						<button type="button" class="btn btn-primary" id="btn-sv-encuesta"><i class="fa fa-floppy-o"></i> Guardar cambios</button>
 						<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
 					</div>
 				</div>
@@ -157,8 +162,17 @@
 		</div>
 		<!-- JS -->
 		@include("common.scripts")
+		<script type="text/javascript" src="{{ asset('js/bootstrap-datepicker.min.js') }}"></script>
+		<script type="text/javascript" src="{{ asset('js/bootstrap-datepicker.es.min.js') }}"></script>
 		<script type="text/javascript">
 			var preguntas = {!! json_encode($preguntas) !!};
+			//datepickers
+			$(".datepicker").datepicker({
+				language: "es",
+				autoclose: true,
+				format: "dd-mm-yyyy",
+				startDate: "today"
+			});
 			//funciones
 			function AgregarPregunta(e) {
 				e.preventDefault();
@@ -302,6 +316,37 @@
 					}
 					else alert(response.msg);
 				}, "json");
+			});
+			$("#btn-sv-encuesta").on("click", function(event) {
+				event.preventDefault();
+				var fini = document.getElementById("de-inicio").value;
+				var ffin = document.getElementById("de-fin").value;
+				if(fini != "" && ffin != "") {
+					var tbody = $("#modal-gestionar-table-cuestionario").children("tr");
+					if(tbody.length > 0) {
+						var arr_preguntas = new Array();
+						$.each(tbody, function() {
+							arr_preguntas.push($(this).data("id"));
+						});
+						var p = {
+							_token: "{{ csrf_token() }}",
+							eid: document.getElementById("modal-gestionar-id").value,
+							ini: fini,
+							fin: ffin,
+							dsc: document.getElementById("de-descripcion").value,
+							prs: arr_preguntas
+						};
+						$.post("{{ url('encuestas/ajax/sv-programa-encuesta') }}", p, function(response) {
+							if(response.success) {
+								alert("Se guardó la encuesta correctamente");
+								location.reload();
+							}
+							else alert(response.msg);
+						}, "json");
+					}
+					else alert("Debe añadir preguntas a la encuesta para continuar");
+				}
+				else alert("Ingrese correctamente las fechas de inicio y fin de la encuesta");
 			});
 		</script>
 	</body>

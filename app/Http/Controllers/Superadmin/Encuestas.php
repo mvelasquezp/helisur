@@ -532,4 +532,43 @@ class Encuestas extends Controller {
         ]);
     }
 
+    public function sv_programa_encuesta() {
+        extract(Request::input());
+        if(isset($eid, $ini, $fin, $prs)) {
+            $usuario = Auth::user();
+            $dsc = isset($dsc) ? $dsc : "";
+            $vIni = explode("-", $ini);
+            $vFin = explode("-", $fin);
+            $arr_insert = [];
+            foreach ($prs as $idx => $pregunta) {
+                $arr_insert[] = [
+                    "id_encuesta" => $eid,
+                    "id_empresa" => $usuario->id_empresa,
+                    "id_pregunta" => $pregunta,
+                    "num_orden" => ($idx + 1),
+                    "tp_pregunta" => "S"
+                ];
+            }
+            DB::table("ev_cuestionario")->insert($arr_insert);
+            DB::table("ma_encuesta")
+                ->where("id_encuesta", $eid)
+                ->where("id_empresa", $usuario->id_empresa)
+                ->update([
+                    "des_descripcion" => $dsc,
+                    "fe_inicio" => implode("-", [$vIni[2], $vIni[1], $vIni[0]]),
+                    "fe_fin" => implode("-", [$vFin[2], $vFin[1], $vFin[0]]),
+                    "num_preguntas" => count($prs),
+                    "st_encuesta" => "Pendiente",
+                    "id_registra" => $usuario->id_usuario
+                ]);
+            return Response::json([
+                "success" => true
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+    }
+
 }
