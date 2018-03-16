@@ -32,13 +32,14 @@
 								@if($encuesta->publico == 0)
 								No se asignaron evaluaciones
 								@else
-								{{ $encuesta->publico }} usuario(s) programado(s)
+								{{ $encuesta->publico }} evaluaciónes programadas
 								@endif
+								<br>Encuesta {{ $encuesta->estado }}
 							</p>
 							@if(strcmp($encuesta->estado, "Creada") == 0)
 							<a href="#" class="btn btn-primary" data-toggle="modal" data-target="#modal-gestionar" data-eid="{{ $encuesta->id }}" data-nom="{{ $encuesta->nombre }}">Administrar</a>
-							@elseif(strcmp($encuesta->estado, "Pendiente") == 0)
-							<a href="#" class="btn btn-success" data-toggle="modal" data-target="#modal-gestionar" data-eid="{{ $encuesta->id }}" data-nom="{{ $encuesta->nombre }}">Revisar</a>
+							@elseif(strcmp($encuesta->estado, "Pendiente") == 0 || strcmp($encuesta->estado, "Preparada") == 0)
+							<a href="#" class="btn btn-warning" data-toggle="modal" data-target="#modal-revisar" data-eid="{{ $encuesta->id }}" data-nom="{{ $encuesta->nombre }}">Revisar</a>
 							@endif
 						</div>
 					</div>
@@ -59,6 +60,8 @@
 						</div>
 						<input type="text" class="form-control mb-2 mr-sm-2" id="enc-nombre" placeholder="Ingrese nombre para la encuesta" style="width:16rem;">
 						<a href="#" class="btn btn-success mb-2" id="btn-enc-guardar"><i class="fa fa-plus"></i> Nueva encuesta</a>
+						&nbsp;&nbsp;&nbsp;
+						<a href="{{ url('encuestas/lanzamiento') }}" class="btn btn-danger mb-2"><i class="fa fa-paper-plane"></i> Lanzamiento de encuestas</a>
 					</form>
 				</div>
 			</div>
@@ -155,7 +158,89 @@
 					</div>
 					<div class="modal-footer">
 						<button type="button" class="btn btn-primary" id="btn-sv-encuesta"><i class="fa fa-floppy-o"></i> Guardar cambios</button>
-						<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- modal-revisar -->
+		<div id="modal-revisar" class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-lg">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title">Revisar</h5>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<input type="hidden" id="modal-revisar-id">
+						<nav>
+							<div class="nav nav-tabs" id="nav-tab" role="tablist">
+								<a class="nav-item nav-link active" id="nav-revresumen-tab" data-toggle="tab" href="#nav-revresumen" role="tab" aria-controls="nav-revresumen" aria-selected="true">Datos de encuesta</a>
+								<a class="nav-item nav-link" id="nav-revpreguntas-tab" data-toggle="tab" href="#nav-revpreguntas" role="tab" aria-controls="nav-revpreguntas" aria-selected="false">Preguntas</a>
+								<a class="nav-item nav-link" id="nav-revusuarios-tab" data-toggle="tab" href="#nav-revusuarios" role="tab" aria-controls="nav-revusuarios" aria-selected="false">Evaluados</a>
+							</div>
+							<div class="tab-content" id="nav-tabContent">
+								<!-- tab resumen -->
+								<div class="tab-pane fade show active" id="nav-revresumen" role="tabpanel" aria-labelledby="nav-revresumen-tab">
+									<div class="container">
+										<form>
+											<div class="form-row">
+												<div class="form-group col">
+													<label for="de-revdescripcion">Descripción</label>
+													<input type="text" class="form-control" id="de-revdescripcion" placeholder="Descripción de la encuesta">
+												</div>
+											</div>
+											<div class="form-row">
+												<div class="form-group col-6">
+													<label for="de-revinicio">Inicio encuesta</label>
+													<input type="text" class="form-control datepicker" id="de-revinicio" placeholder="dd-mm-yyyy">
+												</div>
+												<div class="form-group col-6">
+													<label for="de-revfin">Fin encuesta</label>
+													<input type="text" class="form-control datepicker" id="de-revfin" placeholder="dd-mm-yyyy">
+												</div>
+											</div>
+										</form>
+									</div>
+								</div>
+								<!-- tab resumen -->
+								<div class="tab-pane fade" id="nav-revpreguntas" role="tabpanel" aria-labelledby="nav-revpreguntas-tab">
+									<div class="container">
+										<div class="row">
+											<div class="col">
+												<table class="table table-striped">
+													<thead>
+														<tr class="thead-light">
+															<th>
+																Preguntas seleccionadas<br>
+																<input class="form-control form-control-sm" type="text" id="modal-revisar-table-cuestionario-filtro" placeholder="Ingrese texto para buscar" />
+															</th>
+														</tr>
+													</thead>
+													<tbody id="modal-revisar-table-cuestionario"></tbody>
+												</table>
+											</div>
+										</div>
+									</div>
+								</div>
+								<!-- tab resumen -->
+								<div class="tab-pane fade" id="nav-revusuarios" role="tabpanel" aria-labelledby="nav-revusuarios-tab">
+									<div class="row">
+										<div class="col">
+											<h5 class="text-danger">No se han programado evaluaciones para esta encuesta</h5>
+											<p>Utilice el botón "Programar encuestas" para realizar la asignación de evaluadores y evaluados. El sistema programará las evaluaciones de manera automática, en base a la jerarquía de los puestos y las áreas afines.</p>
+											<a id="btn-revprogramar" href="#" class="btn btn-success btn-sm">Programar encuestas</a>
+										</div>
+									</div>
+								</div>
+							</div>
+						</nav>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-primary" id="btn-upd-encuesta"><i class="fa fa-floppy-o"></i> Guardar los cambios</button>
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
 					</div>
 				</div>
 			</div>
@@ -230,7 +315,7 @@
 				$.post("{{ url('encuestas/ajax/dt-encuesta') }}", p, function(response) {
 					if(response.success) {
 						var dencuesta = response.data.encuesta;
-						var dpreguntas = response.data.preguntas ? response.data.preguntas : '0';
+						var dpreguntas = response.data.preguntas ? response.data.preguntas.preguntas : '0';
 						var dprogramacion = response.data.programacion;
 						//carga resumen
 						document.getElementById("de-descripcion").value = dencuesta.descripcion;
@@ -347,6 +432,124 @@
 					else alert("Debe añadir preguntas a la encuesta para continuar");
 				}
 				else alert("Ingrese correctamente las fechas de inicio y fin de la encuesta");
+			});
+			$("#modal-revisar").on("show.bs.modal", function(args) {
+				var ds = args.relatedTarget.dataset;
+				$("#modal-revisar .modal-title").html("Revisando: " + ds.nom);
+				document.getElementById("modal-revisar-id").value = ds.eid;
+				$("#btn-programar").attr("href","{{ url('encuestas/programacion/evaluadores') }}/" + ds.eid);
+				//cargar informacion de la encuesta
+				var p = { _token:"{{ csrf_token() }}",eid:ds.eid };
+				$.post("{{ url('encuestas/ajax/dt-encuesta') }}", p, function(response) {
+					if(response.success) {
+						var dencuesta = response.data.encuesta;
+						var dpreguntas = response.data.preguntas ? response.data.preguntas.preguntas : '0';
+						var dprogramacion = response.data.programacion;
+						//carga resumen
+						document.getElementById("de-revdescripcion").value = dencuesta.descripcion;
+						document.getElementById("de-revinicio").value = dencuesta.inicio;
+						document.getElementById("de-revfin").value = dencuesta.fin;
+						//muestra preguntas
+						$("#modal-revisar-table-cuestionario").empty();
+						$("#modal-revisar-table-todo").empty();
+						for(var i in preguntas) {
+							var pregunta = preguntas[i];
+							if(dpreguntas.indexOf(pregunta.id) > -1) {
+								$("#modal-revisar-table-cuestionario").append(
+									$("<tr/>").data("id",pregunta.id).data("txt",pregunta.texto).append(
+										$("<td/>").html(pregunta.texto)
+									)/*.append(
+										$("<td/>").append(
+											$("<a/>").attr("href","#").addClass("btn btn-danger btn-xs").append(
+												$("<i/>").addClass("fa fa-remove")
+											).on("click",RetirarPregunta)
+										)
+									)*/
+								);
+							}
+							else {
+								$("#modal-revisar-table-todo").append(
+									$("<tr/>").data("id",pregunta.id).data("txt",pregunta.texto).append(
+										$("<td/>").html(pregunta.texto)
+									)/*.append(
+										$("<td/>").append(
+											$("<a/>").attr("href","#").addClass("btn btn-success btn-xs").append(
+												$("<i/>").addClass("fa fa-plus")
+											).on("click", AgregarPregunta)
+										)
+									)*/
+								);
+							}
+						}
+						//programacion
+						if(dprogramacion.length > 0) {
+							var tbody = $("<tbody/>")
+							for(var i in dprogramacion) {
+								var fila = dprogramacion[i];
+								tbody.append(
+									$("<tr/>").append(
+										$("<td/>").addClass("no-margin").append(
+											$("<p/>").addClass("text-dark").html(fila.neva)
+										).append(
+											$("<p/>").addClass("text-secondary").html(fila.peva + " | " + fila.oeva)
+										)
+									).append(
+										$("<td/>").addClass("no-margin").append(
+											$("<p/>").addClass("text-dark").html(fila.nevo)
+										).append(
+											$("<p/>").addClass("text-secondary").html(fila.pevo + " | " + fila.oevo)
+										)
+									)
+								);
+							}
+							$("#nav-revusuarios>.row>.col").empty().append(
+								$("<table/>").addClass("table").append(
+									$("<thead/>").append(
+										$("<tr/>").append(
+											$("<th/>").html("Evaluador")
+										).append(
+											$("<th/>").html("Evaluado")
+										)
+									)
+								).append(tbody)
+							);
+						}
+						else {
+							$("#nav-revusuarios>.row>.col").empty().append(
+								$("<h5/>").addClass("text-danger").html("No se han programado evaluaciones para esta encuesta")
+							).append(
+								$("<p/>").html('Utilice el botón "Programar encuestas" para realizar la asignación de evaluadores y evaluados. El sistema programará las evaluaciones de manera automática, en base a la jerarquía de los puestos y las áreas afines.')
+							).append(
+								$("<a/>").attr({
+									"id": "btn-programar",
+									"href": "{{ url('encuestas/programacion/evaluadores') }}/" + ds.eid
+								}).addClass("btn btn-success btn-sm").html("Programar encuestas")
+							);
+						}
+					}
+					else alert(response.msg);
+				}, "json");
+			});
+			$("#btn-upd-encuesta").on("click", function(event) {
+				event.preventDefault();
+				var fini = document.getElementById("de-revinicio").value;
+				var ffin = document.getElementById("de-revfin").value;
+				if(fini != "" && ffin != "") {
+					var p = {
+						_token: "{{ csrf_token() }}",
+						eid: document.getElementById("modal-revisar-id").value,
+						ini: fini,
+						fin: ffin,
+						dsc: document.getElementById("de-revdescripcion").value
+					};
+					$.post("{{ url('encuestas/ajax/sv-atualiza-encuesta') }}", p, function(response) {
+						if(response.success) {
+							alert("Encuesta actualizada correctamente");
+							location.reload();
+						}
+						else alert(response.msg);
+					}, "json");
+				}
 			});
 		</script>
 	</body>
