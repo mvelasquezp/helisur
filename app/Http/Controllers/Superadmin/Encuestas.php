@@ -481,11 +481,11 @@ class Encuestas extends Controller {
                         ->on("upt.id_empresa", "=", "usr.id_empresa");
                 })
                 ->join("ma_entidad as ent", "usr.cod_entidad", "=", "ent.cod_entidad")
-                ->join("ma_puesto as pst", function($join_pst) {
+                ->leftJoin("ma_puesto as pst", function($join_pst) {
                     $join_pst->on("upt.id_puesto", "=", "pst.id_puesto")
                         ->on("upt.id_empresa", "=", "pst.id_empresa");
                 })
-                ->join("ma_oficina as ofc", function($join_ofc) {
+                ->leftJoin("ma_oficina as ofc", function($join_ofc) {
                     $join_ofc->on("pst.id_oficina", "=", "ofc.id_oficina")
                         ->on("pst.id_empresa", "=", "ofc.id_empresa");
                 })
@@ -701,6 +701,98 @@ class Encuestas extends Controller {
         return Response::json([
             "success" => true,
             "data" => implode(",", $arr_encuestas)
+        ]);
+    }
+
+    // informe de encuestas
+
+    public function ls_encuestas_informe() {
+        $usuario = Auth::user();
+        $encuestas = DB::table("ma_encuesta as enc")
+            ->leftJoin("ev_evaluacion as eval", function($join_eval) {
+                $join_eval->on("enc.id_encuesta", "=", "eval.id_encuesta")
+                    ->on("enc.id_empresa", "=", "eval.id_empresa");
+            })
+            ->where("enc.id_empresa", $usuario->id_empresa)
+            ->select("enc.id_encuesta as eid", "enc.des_encuesta as encuesta", "enc.des_descripcion as descripcion", "enc.num_preguntas as preguntas",
+                DB::raw("date_format(enc.fe_inicio,'%Y-%m-%d') as inicio"), DB::raw("date_format(enc.fe_fin,'%Y-%m-%d') as fin"), "enc.st_encuesta as estado",
+                DB::raw("count(1) as cantidad"))
+            ->groupBy("eid", "encuesta", "descripcion", "inicio", "fin", "preguntas", "estado")
+            ->orderBy("enc.fe_inicio", "asc")
+            ->limit(25)
+            ->get();
+        return Response::json([
+            "success" => true,
+            "data" => [
+                "encuestas" => $encuestas
+            ]
+        ]);
+    }
+
+    public function dt_progreso_encuesta() {
+        extract(Request::input());
+        if(isset($eid)) {
+            $usuario = Auth::user();
+            $evaluaciones = DB::table("ev_evaluacion as eval")
+                ->join("ma_encuesta as enc", function($join_enc) {
+                    $join_enc->on("eval.id_empresa", "=", "enc.id_empresa")
+                        ->on("eval.id_encuesta", "=", "enc.id_encuesta");
+                })
+                ->join("us_usuario_puesto as eva", function($join_eva) {
+                    $join_eva->on("eval.id_empresa", "=", "eva.id_empresa")
+                        ->on("eval.id_evaluador", "=", "eva.id_usuario")
+                        ->on("eval.id_puesto_evaluador", "=", "eva.id_puesto");
+                })
+                ->join("ma_puesto as evap", function($join_evap) {
+                    $join_evap->on("eva.id_empresa", "=", "evap.id_empresa")
+                        ->on("eva.id_puesto", "=", "evap.id_puesto");
+                })
+                ->join("ma_oficina as evao", function($join_evao) {
+                    $join_evao->on("evap.id_empresa", "=", "evao.id_empresa")
+                        ->on("evap.id_oficina", "=", "evao.id_oficina");
+                })
+                ->join("us_usuario as evau", function($join_evau) {
+                    $join_evau->on("eva.id_empresa", "=", "evau.id_empresa")
+                        ->on("eva.id_usuario", "=", "evau.id_usuario");
+                })
+                ->join("ma_entidad as enta", "evau.cod_entidad", "=", "enta.cod_entidad")
+                ->join("us_usuario_puesto as evo", function($join_evo) {
+                    $join_evo->on("eval.id_empresa", "=", "evo.id_empresa")
+                        ->on("eval.id_usuario", "=", "evo.id_usuario")
+                        ->on("eval.id_puesto", "=", "evo.id_puesto");
+                })
+                ->join("ma_puesto as evop", function($join_evop) {
+                    $join_evop->on("evo.id_empresa", "=", "evop.id_empresa")
+                        ->on("evo.id_puesto", "=", "evop.id_puesto");
+                })
+                ->join("ma_oficina as evoo", function($join_evoo) {
+                    $join_evoo->on("evop.id_empresa", "=", "evoo.id_empresa")
+                        ->on("evop.id_oficina", "=", "evoo.id_oficina");
+                })
+                ->join("us_usuario as evou", function($join_evou) {
+                    $join_evou->on("evo.id_empresa", "=", "evou.id_empresa")
+                        ->on("evo.id_usuario", "=", "evou.id_usuario");
+                })
+                ->join("ma_entidad as ento", "evou.cod_entidad", "=", "ento.cod_entidad")
+                ->where("eval.id_encuesta", $eid)
+                ->where("eval.id_empresa", $usuario->id_empresa)
+                ->select(DB::raw("concat(enta.des_nombre_1,' ',enta.des_nombre_2,' ',enta.des_nombre_3) as evaluador"),"evap.des_puesto as apuesto",
+                    "evao.des_oficina as aoficina",DB::raw("concat(ento.des_nombre_1,' ',ento.des_nombre_2,' ',ento.des_nombre_3) as evaluado"),
+                    "evop.des_puesto as opuesto","evoo.des_oficina as ooficina","eval.st_evaluacion as estado","eval.nu_progreso as progreso",
+                    DB::raw("ifnull(date_format(eval.fe_comienzo,'%Y-%m-%d'),'(no iniciada)') as inicio"), "enc.num_preguntas as preguntas")
+                ->orderBy("evaluador", "asc")
+                ->orderBy("evaluado", "asc")
+                ->get();
+            return Response::json([
+                "success" => true,
+                "data" => [
+                    "lista" => $evaluaciones
+                ]
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
         ]);
     }
 

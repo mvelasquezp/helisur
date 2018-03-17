@@ -11,18 +11,16 @@
 |
 */
 
-Route::get("/", function () {
-	$arrOpts = [
-		"usuario" => Auth::user(),
-		"menu" => 0
-	];
-    return view("usuario.home")->with($arrOpts);
-});
 //autenticacion de usuarios
 Route::group(["prefix" => "login"], function() {
 	Route::get("/", ["as" => "login", "uses" => "Autenticacion@form_login"]);
 	Route::post("verificar", "Autenticacion@post_login");
 	Route::get("logout", "Autenticacion@logout");
+});
+//modulo publico
+Route::middleware("auth")->namespace("Publico")->group(function() {
+	Route::get("/", "Empleados@resumen");
+	Route::get("responder/{eid}/{nup}", "Empleados@responder");
 });
 //modulo de resumen
 Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(function() {
@@ -85,7 +83,14 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 			Route::post("ls-destinatarios", "Encuestas@ls_destinatarios");
 			Route::post("snd-encuesta", "Encuestas@snd_encuesta");
 			Route::post("ls-encuestas-lanzar", "Encuestas@ls_encuestas_lanzar");
+			Route::post("ls-encuestas-informe", "Encuestas@ls_encuestas_informe");
+			Route::post("dt-progreso-encuesta", "Encuestas@dt_progreso_encuesta");
 		});
 	});
 	//modulo de resultados
 });
+/*
+querys para ejecutar en bd
+
+alter table ev_evaluacion add fe_comienzo datetime default null;
+*/
