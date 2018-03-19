@@ -22,12 +22,6 @@ class Usuarios extends Controller {
     }
 
     public function registro() {
-/*ejecuta esta modificacion en la bd
-ALTER TABLE `hls`.`us_usuario` 
-ADD COLUMN `fe_ingreso` DATETIME NULL AFTER `id_empresa`;
-ALTER TABLE `hls`.`us_usuario` 
-ADD COLUMN `st_verifica_mail` CHAR(1) NOT NULL DEFAULT 'N' AFTER `fe_ingreso`;
-*/
         $usuario = Auth::user();
         $usuarios = DB::table("us_usuario as usr")
             ->join("ma_entidad as ent", "usr.cod_entidad", "=", "ent.cod_entidad")

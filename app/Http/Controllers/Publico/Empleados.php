@@ -45,8 +45,229 @@ class Empleados extends Controller {
         return view("usuario.home")->with($arrOpts);
     }
 
-    public function responder($eid, $nup) {
-        return "Encuesta $eid | Preguta #$nup";
+    public function imagen($uid) {
+        $name = implode(DIRECTORY_SEPARATOR, [getcwd(), "images", "user-default.png"]);
+        $fp = fopen($name, "rb");
+        header("Content-Type: image/png");
+        header("Content-Length: " . filesize($name));
+        fpassthru($fp);
+        exit;
+    }
+
+    public function responder($eid) {
+        $usuario = Auth::user();
+        $encuesta = DB::table("ma_encuesta as enc")
+            ->join("ev_evaluacion as eval", function($join_eval) {
+                $join_eval->on("enc.id_empresa", "=", "eval.id_empresa")
+                    ->on("enc.id_encuesta", "=", "eval.id_encuesta");
+            })
+            ->where("enc.id_encuesta", $eid)
+            ->where("enc.id_empresa", $usuario->id_empresa)
+            ->where("eval.id_evaluador", $usuario->id_usuario)
+            ->select("enc.des_encuesta as nombre", DB::raw("date_format(enc.fe_fin, '%Y-%m-%d') as plazo"), "enc.num_preguntas as total",
+                "st_evaluacion as estado", "eval.id_evaluador as eva", "eval.id_puesto_evaluador as peva", DB::raw("min(eval.nu_progreso) as actual"))
+            ->groupBy("nombre", "plazo", "total", "estado", "eva", "peva")
+            ->first();
+        $evaluados = DB::table("ev_evaluacion as eval")
+            ->join("us_usuario_puesto as upt", function($join_upt) {
+                $join_upt->on("eval.id_empresa", "=", "upt.id_empresa")
+                    ->on("eval.id_puesto", "=", "upt.id_puesto")
+                    ->on("eval.id_usuario", "=", "upt.id_usuario");
+            })
+            ->join("ma_puesto as pst", function($join_pst) {
+                $join_pst->on("upt.id_empresa", "=", "pst.id_empresa")
+                    ->on("upt.id_puesto", "=", "pst.id_puesto");
+            })
+            ->join("ma_oficina as ofc", function($join_ofc) {
+                $join_ofc->on("pst.id_empresa", "=", "ofc.id_empresa")
+                    ->on("pst.id_oficina", "=", "ofc.id_oficina");
+            })
+            ->join("us_usuario as usr", function($join_usr) {
+                $join_usr->on("upt.id_empresa", "=", "usr.id_empresa")
+                    ->on("upt.id_usuario", "=", "usr.id_usuario");
+            })
+            ->join("ma_entidad as ent", "usr.cod_entidad", "=", "ent.cod_entidad")
+            ->where("eval.id_evaluador", $usuario->id_usuario)
+            ->where("eval.id_empresa", $usuario->id_empresa)
+            ->where("eval.id_encuesta", $eid)
+            ->where("eval.nu_progreso", $encuesta->actual)
+            ->select(DB::raw("concat(ent.des_nombre_1,' ',ent.des_nombre_2,' ',ent.des_nombre_3) as evaluado"), "pst.des_puesto as puesto",
+                "ofc.des_oficina as oficina", "eval.id_usuario as uid", "eval.id_puesto as pid")
+            ->get();
+        $arrOpts = [
+            "usuario" => $usuario,
+            "menu" => 0,
+            "eid" => $eid,
+            "encuesta" => $encuesta,
+            "evaluados" => $evaluados
+        ];
+        switch($encuesta->actual) {
+            case 0: //encuesta aun no inicia
+                return view("responder.presentacion")->with($arrOpts);
+            case $encuesta->total:
+                switch($encuesta->estado) {
+                    case "En curso":
+                        $pregunta = DB::table("ev_cuestionario as qst")
+                            ->join("ma_pregunta as prg", "qst.id_pregunta", "=", "prg.id_pregunta")
+                            ->join("ev_grupo as grp", "prg.id_grupo", "=", "grp.id_grupo")
+                            ->join("ev_concepto as cnc", "prg.id_concepto", "=", "cnc.id_concepto")
+                            ->join("ev_categoria as cat", "prg.id_categoria", "=", "cat.id_categoria")
+                            ->join("ev_subcategoria as sct", function($join_sct) {
+                                $join_sct->on("prg.id_categoria", "=", "sct.id_categoria")
+                                    ->on("prg.id_subcategoria", "=", "sct.id_subcategoria");
+                            })
+                            ->where("qst.id_empresa", $usuario->id_empresa)
+                            ->where("qst.id_encuesta", $eid)
+                            ->where("qst.num_orden", $encuesta->actual)
+                            ->select("prg.des_pregunta as texto", "grp.des_grupo as grupo", "cnc.des_concepto as concepto",
+                                "cat.des_categoria as categoria", "sct.des_subcategoria as subcategoria", "qst.id_pregunta as pid", "qst.tp_pregunta as ptp")
+                            ->first();
+                        $arrOpts["pregunta"] = $pregunta;
+                        return view("responder.pregunta")->with($arrOpts);
+                    case "Valorando":
+                        return view("responder.valoracion")->with($arrOpts);
+                    case "Finalizada":
+                        return view("responder.agradecimiento")->with($arrOpts);
+                }
+            default:
+                $pregunta = DB::table("ev_cuestionario as qst")
+                    ->join("ma_pregunta as prg", "qst.id_pregunta", "=", "prg.id_pregunta")
+                    ->join("ev_grupo as grp", "prg.id_grupo", "=", "grp.id_grupo")
+                    ->join("ev_concepto as cnc", "prg.id_concepto", "=", "cnc.id_concepto")
+                    ->join("ev_categoria as cat", "prg.id_categoria", "=", "cat.id_categoria")
+                    ->join("ev_subcategoria as sct", function($join_sct) {
+                        $join_sct->on("prg.id_categoria", "=", "sct.id_categoria")
+                            ->on("prg.id_subcategoria", "=", "sct.id_subcategoria");
+                    })
+                    ->where("qst.id_empresa", $usuario->id_empresa)
+                    ->where("qst.id_encuesta", $eid)
+                    ->where("qst.num_orden", $encuesta->actual)
+                    ->select("prg.des_pregunta as texto", "grp.des_grupo as grupo", "cnc.des_concepto as concepto",
+                        "cat.des_categoria as categoria", "sct.des_subcategoria as subcategoria", "qst.id_pregunta as pid", "qst.tp_pregunta as ptp")
+                    ->first();
+                $arrOpts["pregunta"] = $pregunta;
+                return view("responder.pregunta")->with($arrOpts);
+        }
+    }
+
+    public function comenzar($eid) {
+        $usuario = Auth::user();
+        $upt = DB::table("us_usuario_puesto")
+            ->where("id_empresa", $usuario->id_empresa)
+            ->where("id_usuario", $usuario->id_usuario)
+            ->where("st_vigente", "S")
+            ->select("id_usuario as uid", "id_puesto as pid", "id_empresa as mid")
+            ->first();
+        $evaluados = DB::table("ev_evaluacion")
+            ->where("id_evaluador", $upt->uid)
+            ->where("id_empresa", $upt->mid)
+            ->where("id_puesto_evaluador", $upt->pid)
+            ->where("id_encuesta", $eid)
+            ->where("nu_progreso", 0)
+            ->where("st_evaluacion", "Programado")
+            ->select("id_usuario as uid", "id_puesto as pid")
+            ->get();
+        foreach ($evaluados as $evaluacion) {
+            DB::table("ev_evaluacion")
+                ->where("id_encuesta", $eid)
+                ->where("id_empresa", $upt->mid)
+                ->where("id_evaluador", $upt->uid)
+                ->where("id_puesto_evaluador", $upt->pid)
+                ->where("id_usuario", $evaluacion->uid)
+                ->where("id_puesto", $evaluacion->pid)
+                ->update([
+                    "st_evaluacion" => "En curso",
+                    "nu_progreso" => 1,
+                    "fe_comienzo" => date("Y-m-d H:i:s")
+                ]);
+        }
+        return redirect("responder/" . $eid);
+    }
+
+    public function guardar() {
+        extract(Request::input());
+        $usuario = Auth::user();
+        $arr_to_insert = [];
+        $encuesta = DB::table("ma_encuesta")
+            ->where("id_empresa", $usuario->id_empresa)
+            ->where("id_encuesta", $eid)
+            ->select("num_preguntas as preguntas")
+            ->first();
+        foreach($ids as $idx => $arrid) {
+            $vId = explode("|", $arrid);
+            $to_insert = [
+                "num_orden" => $nmp,
+                "num_respuesta" => $puntaje[$idx],
+                "id_encuesta" => $eid,
+                "id_empresa" =>  $usuario->id_usuario,
+                "id_pregunta" => $pid,
+                "id_usuario" => $vId[0], 
+                "id_puesto" => $vId[1],
+                "id_evaluador" => $eva,
+                "id_puesto_evaluador" => $peva
+            ];
+            $arr_to_insert[] = $to_insert;
+            if($nmp < $encuesta->preguntas) {
+                DB::table("ev_evaluacion")
+                    ->where("id_empresa", $usuario->id_empresa)
+                    ->where("id_encuesta", $eid)
+                    ->where("id_evaluador", $eva)
+                    ->where("id_puesto_evaluador", $peva)
+                    ->where("id_usuario", $vId[0])
+                    ->where("id_puesto", $vId[1])
+                    ->where("st_evaluacion", "En curso")
+                    ->increment("nu_progreso", 1);
+            }
+            else {
+                DB::table("ev_evaluacion")
+                    ->where("id_empresa", $usuario->id_empresa)
+                    ->where("id_encuesta", $eid)
+                    ->where("id_evaluador", $eva)
+                    ->where("id_puesto_evaluador", $peva)
+                    ->where("id_usuario", $vId[0])
+                    ->where("id_puesto", $vId[1])
+                    ->where("st_evaluacion", "En curso")
+                    ->update([ "st_evaluacion" => "Valorando" ]);
+            }
+        }
+        $table = strcmp($ptp, "S") == 0 ? "ev_evaluacion_num" : "ev_evaluacion_txt";
+        DB::table($table)->insert($arr_to_insert);
+        return redirect("responder/" . $eid);
+    }
+
+    public function valorar() {
+        extract(Request::input());
+        $usuario = Auth::user();
+        $arr_to_insert = [];
+        foreach ($valoracion as $idx => $valor) {
+            $vId = explode("|", $ids[$idx]);
+            $arr_to_insert[] = [
+                "des_fortaleza_1" => $fs1[$idx],
+                "des_fortaleza_2" => isset($fs2[$idx]) ? $fs2[$idx] : "",
+                "des_fortaleza_3" => isset($fs3[$idx]) ? $fs3[$idx] : "",
+                "des_debilidad_1" => $db1[$idx],
+                "des_debilidad_2" => isset($db2[$idx]) ? $db2[$idx] : "",
+                "des_debilidad_3" => isset($db3[$idx]) ? $db3[$idx] : "",
+                "id_usuario" => $vId[0],
+                "id_puesto" => $vId[1],
+                "id_empresa" => $usuario->id_empresa,
+                "id_encuesta" => $eid,
+                "id_evaluador" => $eva,
+                "id_puesto_evaluador" => $peva,
+                "num_valoracion" => $valor
+            ];
+            DB::table("ev_evaluacion")
+                ->where("id_empresa", $usuario->id_empresa)
+                ->where("id_encuesta", $eid)
+                ->where("id_evaluador", $eva)
+                ->where("id_puesto_evaluador", $peva)
+                ->where("id_usuario", $vId[0])
+                ->where("id_puesto", $vId[1])
+                ->where("st_evaluacion", "Valorando")
+                ->update([ "st_evaluacion" => "Finalizada" ]);
+        }
+        DB::table("ev_mejora")->insert($arr_to_insert);
+        return redirect("responder/" . $eid);
     }
 
 }

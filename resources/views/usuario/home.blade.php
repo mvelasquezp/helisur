@@ -31,7 +31,7 @@
 							<p class="card-text text-muted">
 								Progreso: {{ $pendiente->prog }} / {{ $pendiente->cant }}
 							</p>
-							<a href="{{ url('responder', [$pendiente->eid, $pendiente->prog]) }}" class="btn btn-primary">{{ $pendiente->prog == 0 ? "Iniciar" : "Continuar" }}</a>
+							<a href="{{ url('responder', [$pendiente->eid]) }}" class="btn btn-primary">{{ $pendiente->prog == 0 ? "Iniciar" : "Continuar" }}</a>
 						</div>
 					</div>
 					@endforeach

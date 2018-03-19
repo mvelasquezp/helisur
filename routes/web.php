@@ -20,7 +20,13 @@ Route::group(["prefix" => "login"], function() {
 //modulo publico
 Route::middleware("auth")->namespace("Publico")->group(function() {
 	Route::get("/", "Empleados@resumen");
-	Route::get("responder/{eid}/{nup}", "Empleados@responder");
+	Route::get("imagen/{uid}", "Empleados@imagen");
+	Route::prefix("responder")->group(function() {
+		Route::get("{eid}", "Empleados@responder");
+		Route::get("comenzar/{eid}", "Empleados@comenzar");
+		Route::post("guardar", "Empleados@guardar");
+		Route::post("valorar", "Empleados@valorar");
+	});
 });
 //modulo de resumen
 Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(function() {
@@ -89,8 +95,40 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 	});
 	//modulo de resultados
 });
-/*
-querys para ejecutar en bd
 
-alter table ev_evaluacion add fe_comienzo datetime default null;
+/*
+mas querys
+
+ALTER TABLE `ev_evaluacion_num` 
+ADD COLUMN `id_evaluador` INT NOT NULL AFTER `id_puesto`,
+ADD COLUMN `id_puesto_evaluador` INT NOT NULL AFTER `id_evaluador`,
+DROP PRIMARY KEY,
+ADD PRIMARY KEY (`id_encuesta`, `id_empresa`, `id_pregunta`, `id_usuario`, `id_puesto`, `id_evaluador`, `id_puesto_evaluador`);
+
+ALTER TABLE `ev_evaluacion_txt` 
+ADD COLUMN `id_evaluador` INT NOT NULL AFTER `id_puesto`,
+ADD COLUMN `id_puesto_evaluador` INT NOT NULL AFTER `id_evaluador`,
+DROP PRIMARY KEY,
+ADD PRIMARY KEY (`id_encuesta`, `id_empresa`, `id_pregunta`, `id_usuario`, `id_puesto`, `id_evaluador`, `id_puesto_evaluador`);
+
+ALTER TABLE `ev_mejora` 
+ADD COLUMN `id_evaluador` INT NOT NULL AFTER `id_pregunta`,
+ADD COLUMN `id_puesto_evaluador` INT NOT NULL AFTER `id_evaluador`,
+ADD COLUMN `num_valoracion` INT NULL DEFAULT 5 AFTER `id_puesto_evaluador`,
+DROP PRIMARY KEY,
+ADD PRIMARY KEY (`id_usuario`, `id_puesto`, `id_empresa`, `id_encuesta`, `id_pregunta`, `id_puesto_evaluador`, `id_evaluador`);
+
+ALTER TABLE `ev_mejora` 
+DROP FOREIGN KEY `fk_cuestionario_mejora`;
+ALTER TABLE `ev_mejora` 
+DROP COLUMN `id_pregunta`,
+DROP PRIMARY KEY,
+ADD PRIMARY KEY (`id_usuario`, `id_puesto`, `id_empresa`, `id_encuesta`, `id_puesto_evaluador`, `id_evaluador`),
+DROP INDEX `fk_cuestionario_mejora` ,
+ADD INDEX `fk_cuestionario_mejora` (`id_encuesta` ASC, `id_empresa` ASC);
+ALTER TABLE `ev_mejora` 
+ADD CONSTRAINT `fk_cuestionario_mejora`
+  FOREIGN KEY (`id_encuesta` , `id_empresa`)
+  REFERENCES `ev_cuestionario` (`id_encuesta` , `id_empresa`);
+
 */
