@@ -49,6 +49,9 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 			Route::post("sv-grupo", "Usuarios@sv_grupo");
 			Route::post("ls-areas-afines", "Usuarios@ls_areas_afines");
 			Route::post("sv-oficina", "Usuarios@sv_oficina");
+			Route::post("retira-usuario", "Usuarios@retira_usuario");
+			Route::post("activa-usuario", "Usuarios@activa_usuario");
+			Route::post("upload-picture", "Usuarios@upload_picture");
 		});
 	});
 	//modulo de preguntas

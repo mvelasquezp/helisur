@@ -46,10 +46,20 @@ class Empleados extends Controller {
     }
 
     public function imagen($uid) {
-        $name = implode(DIRECTORY_SEPARATOR, [getcwd(), "images", "user-default.png"]);
-        $fp = fopen($name, "rb");
-        header("Content-Type: image/png");
-        header("Content-Length: " . filesize($name));
+        $usuario = DB::table("us_usuario")->where("id_usuario", $uid);
+        $path = implode(DIRECTORY_SEPARATOR, [getcwd(), "images", "user-default.png"]);
+        $mime = "Content-Type: image/png";
+        if($usuario->count() > 0) {
+            $usuario = $usuario->select("cod_entidad as cod")->first();
+            $iPath = implode(DIRECTORY_SEPARATOR, [public_path(), "images", "pictures", $usuario->cod . ".jpg"]);
+            if(file_exists($iPath)) {
+                $path = $iPath;
+                $mime = "Content-Type: image/jpeg";
+            }
+        }
+        $fp = fopen($path, "rb");
+        header($mime);
+        header("Content-Length: " . filesize($path));
         fpassthru($fp);
         exit;
     }
