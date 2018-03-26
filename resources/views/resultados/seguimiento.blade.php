@@ -109,7 +109,10 @@
 										$("<p/>").addClass("text-secondary").html(fila.opuesto + " - " + fila.ooficina)
 									)
 								).append(
-									$("<td/>").html(fila.estado)
+									//$("<td/>").html(fila.estado)
+									$("<td/>").append(
+										$("<a/>").addClass("btn btn-xs text-light " + (fila.estado == "En curso" ? "btn-success" : (fila.estado == "Programado" ? "btn-danger" : (fila.estado == "Pendiente" ? "btn-warning" : "btn-info")))).html(fila.estado)
+									)
 								).append(
 									$("<td/>").addClass("text-center").html(fila.progreso + " / " + fila.preguntas)
 								).append(
@@ -149,7 +152,7 @@
 									$("<td/>").html(encuesta.inicio + " al " + encuesta.fin)
 								).append(
 									$("<td/>").append(
-										$("<a/>").addClass("btn btn-xs " + (encuesta.estado == "En curso" ? "btn-success" : (encuesta.estado == "Programado" ? "btn-danger" : (encuesta.estado == "Pendiente" ? "btn-warning" : "btn-info text-light")))).html(encuesta.estado)
+										$("<a/>").addClass("btn btn-xs text-light " + (encuesta.estado == "En curso" ? "btn-success" : (encuesta.estado == "Programado" ? "btn-danger" : (encuesta.estado == "Pendiente" ? "btn-warning" : "btn-info")))).html(encuesta.estado)
 									)
 								).append(
 									$("<td/>").append(

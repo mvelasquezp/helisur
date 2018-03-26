@@ -63,15 +63,6 @@ class Encuestas extends Controller {
         return view("encuestas.anteriores")->with($arrOpts);
     }
 
-    public function informe() {
-        $usuario = Auth::user();
-        $arrOpts = [
-            "usuario" => $usuario,
-            "menu" => 3
-        ];
-        return view("encuestas.informe")->with($arrOpts);
-    }
-
     public function lanzamiento() {
         $usuario = Auth::user();
         $encuestas = DB::table("ma_encuesta as enc")

@@ -73,7 +73,6 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 			Route::get("evaluadores/{eid}", "Encuestas@evaluadores");
 		});
 		Route::get("anteriores", "Encuestas@anteriores");
-		Route::get("informe", "Encuestas@informe");
 		Route::get("lanzamiento", "Encuestas@lanzamiento");
 		Route::prefix("ajax")->group(function() {
 			//encuestas/ajax
@@ -94,41 +93,64 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 		});
 	});
 	//modulo de resultados
+	Route::prefix("resultados")->group(function() {
+		Route::get("seguimiento", "Resultados@seguimiento");
+		Route::get("analisis", "Resultados@analisis");
+		Route::prefix("ajax")->group(function() {
+			//resultados/ajax
+			Route::post("ls-oficinas", "Resultados@ls_oficinas");
+			Route::post("ls-puestos", "Resultados@ls_puestos");
+			Route::post("ls-personal", "Resultados@ls_personal");
+			Route::post("ch-colaborador", "Resultados@ch_colaborador");
+		});
+	});
 });
 
 /*
 mas querys
 
-ALTER TABLE `ev_evaluacion_num` 
-ADD COLUMN `id_evaluador` INT NOT NULL AFTER `id_puesto`,
-ADD COLUMN `id_puesto_evaluador` INT NOT NULL AFTER `id_evaluador`,
-DROP PRIMARY KEY,
-ADD PRIMARY KEY (`id_encuesta`, `id_empresa`, `id_pregunta`, `id_usuario`, `id_puesto`, `id_evaluador`, `id_puesto_evaluador`);
+delimiter $$
+CREATE TRIGGER trg_ma_oficina_bins BEFORE insert ON ma_oficina
+FOR EACH ROW
+begin
+	if NEW.num_jerarquia <= 1 then
+		set NEW.id_oficina_n0 = NEW.id_oficina;
+	else
+        set NEW.id_oficina_n0 = (select id_oficina_n0 from ma_oficina where id_oficina = NEW.id_ancestro and id_empresa = NEW.id_empresa);
+	end if;
+end$$
+delimiter ;
 
-ALTER TABLE `ev_evaluacion_txt` 
-ADD COLUMN `id_evaluador` INT NOT NULL AFTER `id_puesto`,
-ADD COLUMN `id_puesto_evaluador` INT NOT NULL AFTER `id_evaluador`,
-DROP PRIMARY KEY,
-ADD PRIMARY KEY (`id_encuesta`, `id_empresa`, `id_pregunta`, `id_usuario`, `id_puesto`, `id_evaluador`, `id_puesto_evaluador`);
+update ma_oficina set id_oficina_n0 = 2 where id_ancestro = 2;
+	update ma_oficina set id_oficina_n0 = 2 where id_ancestro = 4;
+	update ma_oficina set id_oficina_n0 = 2 where id_ancestro = 5;
+	update ma_oficina set id_oficina_n0 = 2 where id_ancestro = 6;
+    
+update ma_oficina set id_oficina_n0 = 3 where id_ancestro = 3;
+	update ma_oficina set id_oficina_n0 = 3 where id_ancestro = 7;
+	update ma_oficina set id_oficina_n0 = 3 where id_ancestro = 8;
+	update ma_oficina set id_oficina_n0 = 3 where id_ancestro = 9;
+	update ma_oficina set id_oficina_n0 = 3 where id_ancestro = 10;
+	update ma_oficina set id_oficina_n0 = 3 where id_ancestro = 11;
+	
+update ma_oficina set id_oficina_n0 = 23 where id_ancestro = 23;
+	update ma_oficina set id_oficina_n0 = 23 where id_ancestro = 24;
 
-ALTER TABLE `ev_mejora` 
-ADD COLUMN `id_evaluador` INT NOT NULL AFTER `id_pregunta`,
-ADD COLUMN `id_puesto_evaluador` INT NOT NULL AFTER `id_evaluador`,
-ADD COLUMN `num_valoracion` INT NULL DEFAULT 5 AFTER `id_puesto_evaluador`,
-DROP PRIMARY KEY,
-ADD PRIMARY KEY (`id_usuario`, `id_puesto`, `id_empresa`, `id_encuesta`, `id_pregunta`, `id_puesto_evaluador`, `id_evaluador`);
+update ma_oficina set id_oficina_n0 = 25 where id_ancestro = 25;
+	update ma_oficina set id_oficina_n0 = 25 where id_ancestro = 26;
 
-ALTER TABLE `ev_mejora` 
-DROP FOREIGN KEY `fk_cuestionario_mejora`;
-ALTER TABLE `ev_mejora` 
-DROP COLUMN `id_pregunta`,
-DROP PRIMARY KEY,
-ADD PRIMARY KEY (`id_usuario`, `id_puesto`, `id_empresa`, `id_encuesta`, `id_puesto_evaluador`, `id_evaluador`),
-DROP INDEX `fk_cuestionario_mejora` ,
-ADD INDEX `fk_cuestionario_mejora` (`id_encuesta` ASC, `id_empresa` ASC);
-ALTER TABLE `ev_mejora` 
-ADD CONSTRAINT `fk_cuestionario_mejora`
-  FOREIGN KEY (`id_encuesta` , `id_empresa`)
-  REFERENCES `ev_cuestionario` (`id_encuesta` , `id_empresa`);
+update ma_oficina set id_oficina_n0 = 27 where id_ancestro = 27;
+	update ma_oficina set id_oficina_n0 = 27 where id_ancestro = 28;
+	update ma_oficina set id_oficina_n0 = 27 where id_ancestro = 29;
+
+update ma_oficina set id_oficina_n0 = 30 where id_ancestro = 30;
+	update ma_oficina set id_oficina_n0 = 30 where id_ancestro = 31;
+	update ma_oficina set id_oficina_n0 = 30 where id_ancestro = 32;
+	update ma_oficina set id_oficina_n0 = 30 where id_ancestro = 33;
+
+update ma_oficina set id_oficina_n0 = 39 where id_ancestro = 39;
+	update ma_oficina set id_oficina_n0 = 39 where id_ancestro = 40;
+	update ma_oficina set id_oficina_n0 = 39 where id_ancestro = 41;
+	update ma_oficina set id_oficina_n0 = 39 where id_ancestro = 42;
 
 */

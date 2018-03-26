@@ -34,12 +34,14 @@
 								@else
 								{{ $encuesta->publico }} evaluaciónes programadas
 								@endif
-								<br>Encuesta {{ $encuesta->estado }}
+								<br>Encuesta <b>{{ $encuesta->estado }}</b>
 							</p>
 							@if(strcmp($encuesta->estado, "Creada") == 0)
 							<a href="#" class="btn btn-primary" data-toggle="modal" data-target="#modal-gestionar" data-eid="{{ $encuesta->id }}" data-nom="{{ $encuesta->nombre }}">Administrar</a>
 							@elseif(strcmp($encuesta->estado, "Pendiente") == 0 || strcmp($encuesta->estado, "Preparada") == 0)
 							<a href="#" class="btn btn-warning" data-toggle="modal" data-target="#modal-revisar" data-eid="{{ $encuesta->id }}" data-nom="{{ $encuesta->nombre }}">Revisar</a>
+							@else
+							<a href="#" class="btn btn-info" data-toggle="modal" data-target="#modal-revisar" data-eid="{{ $encuesta->id }}" data-nom="{{ $encuesta->nombre }}">Ver</a>
 							@endif
 						</div>
 					</div>
