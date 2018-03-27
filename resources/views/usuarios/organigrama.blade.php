@@ -147,7 +147,12 @@
             								$("<small/>").addClass("text-muted").html(cargo.nombre)
             							).append(
             								$("<p/>").addClass("mb-1").append(
-            									$("<a/>").attr("href","#").addClass("btn btn-info btn-xs text-light").html("Cambiar")
+            									$("<a/>").attr("href","#").addClass("btn btn-info btn-xs text-light").attr({
+            										"data-uid": cargo.uid,
+            										"data-pid": cargo.pid
+            									}).append(
+            										$("<i/>").addClass("fa fa-remove")
+        										).append(" Quitar").on("click", EliminaUpt)
         									)
             							)
             						);
@@ -221,7 +226,19 @@
         							$("<p/>").append(
         								$("<b/>").html("Dependencias:")
     								)
-        						).append(dv_dependencias);
+        						).append(dv_dependencias).append(
+        							$("<hr/>")
+        						).append(
+        							$("<p/>").addClass("text-right").append(
+        								$("<a/>").addClass("btn btn-danger btn-sm").attr({
+        									"href": "#",
+        									"data-oid": aoid,
+        									"data-nom": puesto.nombre
+        								}).append(
+        									$("<i/>").addClass("fa fa-trash")
+    									).append(" Retirar oficina").on("click", RetiraOficina)
+    								)
+        						);
 	            			}
 	            		}, "json");
 	            		if(!abierto) {
@@ -263,6 +280,32 @@
 	            	else args.content[1] = args.content[1].replace("rect", "rect style=\"fill:#00897b;stroke:#004d40;\"");*/
 	            }
 	        });
+			//listeners
+			function EliminaUpt(evt) {
+				evt.preventDefault();
+				var a = $(this);
+				var p = { _token: "{{ csrf_token() }}", uid: a.data("uid"), pid: a.data("pid") };
+				if(window.confirm("¿Seguro que desea retirar a " + a.parent().prev().html() + "?")) {
+					$.post("{{ url('usuarios/ajax/retirar-upt') }}", p, function(response) {
+						if(response.success) a.parent().parent().remove();
+						else alert(response.msg);
+					}, "json");
+				}
+			}
+			function RetiraOficina(evt) {
+				evt.preventDefault();
+				var a = $(this);
+				if(window.confirm("¿Realmente desea eliminar la oficina " + a.data("nom") + "? No se podrá deshacer el cambio.")) {
+					var p = { _token: "{{ csrf_token() }}", oid: a.data("oid") };
+					$.post("{{ url('usuarios/ajax/eliminar-oficina') }}", p, function(response) {
+						if(response.success) {
+							alert("Se eliminó la oficina " + a.data("nom"));
+							location.reload();
+						}
+						else alert(response.msg);
+					}, "json");
+				}
+			}
 			//eventos modals
 			$("#modal-dependencia").on("show.bs.modal", function(e) {
 				document.getElementById("dp-cargo").value = "";

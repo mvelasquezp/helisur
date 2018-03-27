@@ -18,6 +18,7 @@
 					<p class="text-secondary">Desde aquí podrá crear las evaluaciones para aplicar al personal.</p>
 					@if(count($encuestas) > 0)
 					@foreach($encuestas as $idx => $encuesta)
+					@if($encuesta->estado != "Retirada")
 					<div id="dv-encuesta-{{ $encuesta->id }}" class="card bg-light" style="display:inline-block;margin:0 0.15rem;width:18rem">
 						<div class="card-body">
 							<h5 class="card-title">{{ $encuesta->nombre }}</h5>
@@ -39,12 +40,16 @@
 							@if(strcmp($encuesta->estado, "Creada") == 0)
 							<a href="#" class="btn btn-primary" data-toggle="modal" data-target="#modal-gestionar" data-eid="{{ $encuesta->id }}" data-nom="{{ $encuesta->nombre }}">Administrar</a>
 							@elseif(strcmp($encuesta->estado, "Pendiente") == 0 || strcmp($encuesta->estado, "Preparada") == 0)
-							<a href="#" class="btn btn-warning" data-toggle="modal" data-target="#modal-revisar" data-eid="{{ $encuesta->id }}" data-nom="{{ $encuesta->nombre }}">Revisar</a>
-							@else
-							<a href="#" class="btn btn-info" data-toggle="modal" data-target="#modal-revisar" data-eid="{{ $encuesta->id }}" data-nom="{{ $encuesta->nombre }}">Ver</a>
+							<a href="#" class="btn btn-warning" data-toggle="modal" data-target="#modal-revisar" data-eid="{{ $encuesta->id }}" data-nom="{{ $encuesta->nombre }}" data-editar="S">Revisar</a>
+							@elseif(strcmp($encuesta->estado, "En curso") == 0)
+							<a href="#" class="btn btn-info" data-toggle="modal" data-target="#modal-revisar" data-eid="{{ $encuesta->id }}" data-nom="{{ $encuesta->nombre }}" data-editar="N">Ver</a>
+							@endif
+							@if(strcmp($encuesta->estado, "Preparada") != 0 && strcmp($encuesta->estado, "Retirada") != 0)
+							<a href="#" class="btn btn-danger btn-elimina-encuesta" data-eid="{{ $encuesta->id }}" data-nom="{{ $encuesta->nombre }}">Retirar</a>
 							@endif
 						</div>
 					</div>
+					@endif
 					@endforeach
 					@else
 					<div class="alert alert-danger" role="alert">
@@ -515,6 +520,14 @@
 									)
 								).append(tbody)
 							);
+							if(ds.editar == "S") {
+								$("#nav-revusuarios>.row>.col").append(
+									$("<a/>").attr({
+										"id": "btn-programar",
+										"href": "{{ url('encuestas/programacion/evaluadores') }}/" + ds.eid
+									}).addClass("btn btn-success btn-sm").html("Agregar evaluadores")
+								)
+							}
 						}
 						else {
 							$("#nav-revusuarios>.row>.col").empty().append(
@@ -549,6 +562,17 @@
 							alert("Encuesta actualizada correctamente");
 							location.reload();
 						}
+						else alert(response.msg);
+					}, "json");
+				}
+			});
+			$(".btn-elimina-encuesta").on("click", function(evt) {
+				evt.preventDefault();
+				var a  = $(this);
+				if(window.confirm("¿Seguro que desea retirar la encuesta " + a.data("nom") + "?")) {
+					var p = { _token:"{{ csrf_token() }}", eid:a.data("eid") };
+					$.post("{{ url('encuestas/ajax/del-encuesta') }}", p, function(response) {
+						if(response.success) location.reload();
 						else alert(response.msg);
 					}, "json");
 				}

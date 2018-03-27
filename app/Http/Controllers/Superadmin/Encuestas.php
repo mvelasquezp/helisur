@@ -787,4 +787,24 @@ class Encuestas extends Controller {
         ]);
     }
 
+    public function del_encuesta() {
+        extract(Request::input());
+        if(isset($eid)) {
+            $usuario = Auth::user();
+            DB::table("ma_encuesta")
+                ->where("id_empresa", $usuario->id_empresa)
+                ->where("id_encuesta", $eid)
+                ->update([
+                    "st_encuesta" => "Retirada"
+                ]);
+            return Response::json([
+                "success" => true
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+    }
+
 }

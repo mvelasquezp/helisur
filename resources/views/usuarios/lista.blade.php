@@ -503,6 +503,11 @@
 					}
 				});
 			});
+			$(".form-control-sm").on("keyup", function() {
+				var input = $(this);
+				input.val(input.val().toUpperCase());
+				return true;
+			});
 		</script>
 	</body>
 </html>

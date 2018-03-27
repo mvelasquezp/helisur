@@ -102,6 +102,23 @@
 				}, "json");
 			}
 			$("#btn-ins-pregunta").on("click", GuardarPregunta);
+			$("#ins-categoria").on("change", function() {
+				var cat = $(this).val();
+				var p = { _token:"{{ csrf_token() }}",cat:cat };
+				$.post("{{ url('preguntas/ajax/ls-subcategorias') }}", p, function(response) {
+					if(response.success) {
+						$("#ins-subcategoria").empty();
+						var scats = response.data;
+						for(var i in scats) {
+							var scat = scats[i];
+							$("#ins-subcategoria").append(
+								$("<option/>").val(scat.value).html(scat.text)
+							);
+						}
+					}
+					else alert(response.msg);
+				}, "json");
+			});
 		</script>
 	</body>
 </html>

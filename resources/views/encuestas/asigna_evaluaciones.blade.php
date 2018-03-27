@@ -66,7 +66,7 @@
 									<p class="text-secondary">{{ $fila->pevo }} | {{ $fila->oevo }}</p>
 								</td>
 								<td>
-									<a href="#" class="btn btn-danger btn-xs"><i class="fa fa-remove"></i> Retirar</a>
+									<a href="#" class="btn btn-danger btn-xs btn-retira" data-eva="{{ $fila->auid }}" data-peva="{{ $fila->apid }}" data-evo="{{ $fila->ouid }}" data-pevo="{{ $fila->opid }}" data-enc="{{ $encuesta->id }}" data-nom="{{ $encuesta->nombre }}"><i class="fa fa-remove"></i> Retirar</a>
 								</td>
 							</tr>
 							@endforeach
@@ -405,6 +405,21 @@
 					}
 					else alert(response.msg);
 				}, "json");
+			});
+			$(".btn-retira").on("click", function(evt) {
+				evt.preventDefault();
+				var a = $(this);
+				if(window.confirm("¿Está seguro de retirar la evaluación seleccionada? Podrá volver incorporar a los colaboradores retirados siempre y cuando la encuesta no haya sido lanzada.")) {
+					var p = {
+						_token: "{{ csrf_token() }}",
+						eva: a.data("eva"),
+						peva: a.data("peva"),
+						evo: a.data("evo"),
+						pevo: a.data("pevo"),
+						eid: a.data("enc")
+					};
+					//$.post();
+				}
 			});
 			function toggleRow(event) {
 				event.preventDefault();

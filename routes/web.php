@@ -52,6 +52,10 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 			Route::post("retira-usuario", "Usuarios@retira_usuario");
 			Route::post("activa-usuario", "Usuarios@activa_usuario");
 			Route::post("upload-picture", "Usuarios@upload_picture");
+			Route::post("retirar-upt", "Usuarios@retirar_upt");
+			Route::post("retirar-grupo", "Usuarios@retirar_grupo");
+			Route::post("retirar-oficina", "Usuarios@retirar_oficina");
+			Route::post("eliminar-oficina", "Usuarios@eliminar_oficina");
 		});
 	});
 	//modulo de preguntas
@@ -66,6 +70,7 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 			Route::post("ins-categoria", "Preguntas@ins_categoria");
 			Route::post("ins-subcategoria", "Preguntas@ins_subcategoria");
 			Route::post("ins-pregunta", "Preguntas@ins_pregunta");
+			Route::post("ls-subcategorias", "Preguntas@ls_subcategorias");
 		});
 	});
 	//modulo de encuestas
@@ -93,6 +98,7 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 			Route::post("ls-encuestas-lanzar", "Encuestas@ls_encuestas_lanzar");
 			Route::post("ls-encuestas-informe", "Encuestas@ls_encuestas_informe");
 			Route::post("dt-progreso-encuesta", "Encuestas@dt_progreso_encuesta");
+			Route::post("del-encuesta", "Encuestas@del_encuesta");
 		});
 	});
 	//modulo de resultados

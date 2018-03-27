@@ -208,4 +208,23 @@ class Preguntas extends Controller {
         ]);
     }
 
+    public function ls_subcategorias() {
+        extract(Request::input());
+        if(isset($cat)) {
+            $subcategorias = DB::table("ev_subcategoria")
+                ->where("id_categoria", $cat)
+                ->select("id_subcategoria as value", "des_subcategoria as text")
+                ->orderBy("text", "asc")
+                ->get();
+            return Response::json([
+                "success" => true,
+                "data" => $subcategorias
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+    }
+
 }

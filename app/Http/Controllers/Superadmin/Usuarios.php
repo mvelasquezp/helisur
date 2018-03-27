@@ -122,6 +122,7 @@ class Usuarios extends Controller {
             })
             ->leftJoin("ma_entidad as ent", "usr.cod_entidad", "=", "ent.cod_entidad")
             ->where("ofc.id_empresa", $usuario->id_empresa)
+            ->where("ofc.st_oficina", "S")
             ->select("ofc.id_oficina as id", "ofc.id_ancestro as parentId", "ofc.des_oficina as cargo",
                 DB::raw("ifnull(concat(ent.des_nombre_3,' ',ent.des_nombre_1,' ',ent.des_nombre_2),'(encargado no asignado)') as nombre"),
                 "usr.id_usuario as uid", "ofc.num_jerarquia as jer", DB::raw("ifnull(pst.des_puesto,'(personal no asignado)') as puesto"))
@@ -161,7 +162,7 @@ class Usuarios extends Controller {
                 ->leftJoin("ma_entidad as ent", "usr.cod_entidad", "=", "ent.cod_entidad")
                 ->where("pst.id_oficina", $oid)
                 ->where("pst.st_vigente", "S")
-                ->select("pst.id_puesto as pid", "pst.des_puesto as puesto", DB::raw("ifnull(concat(ent.des_nombre_3,' ',ent.des_nombre_1,' ',ent.des_nombre_2),'(sin asignar)') as nombre"))
+                ->select("pst.id_puesto as pid", "upt.id_usuario as uid", "pst.des_puesto as puesto", DB::raw("ifnull(concat(ent.des_nombre_3,' ',ent.des_nombre_1,' ',ent.des_nombre_2),'(sin asignar)') as nombre"))
                 ->get();
             $dependencias = DB::table("ma_oficina")
                 ->where("id_ancestro", $oid)
@@ -626,6 +627,93 @@ class Usuarios extends Controller {
                 "msg" => $message
             ]);
 
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Debe seleccionar una imagen para subir"
+        ]);
+    }
+
+    public function retirar_upt() {
+        extract(Request::input());
+        if(isset($uid, $pid)) {
+            $usuario = Auth::user();
+            DB::table("us_usuario_puesto")
+                ->where("id_empresa", $usuario->id_empresa)
+                ->where("id_usuario", $uid)
+                ->where("id_puesto", $pid)
+                ->update([
+                    "st_vigente" => "N"
+                ]);
+            return Response::json([
+                "success" => true
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Debe seleccionar una imagen para subir"
+        ]);
+    }
+
+    public function retirar_grupo() {
+        extract(Request::input());
+        if(isset($gid)) {
+            $usuario = Auth::user();
+            DB::table("ev_afinidad")
+                ->where("id_empresa", $usuario->id_empresa)
+                ->where("id_afinidad", $gid)
+                ->update([
+                    "st_vigente" => "N"
+                ]);
+            return Response::json([
+                "success" => true
+        ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Debe seleccionar una imagen para subir"
+        ]);
+    }
+
+    public function retirar_oficina() {
+        extract(Request::input());
+        if(isset($oid, $gid)) {
+            $usuario = Auth::user();
+            DB::table("ev_afinidad_oficina")
+                ->where("id_empresa", $usuario->id_empresa)
+                ->where("id_afinidad", $gid)
+                ->where("id_oficina", $oid)
+                ->delete();
+            return Response::json([
+                "success" => true
+        ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Debe seleccionar una imagen para subir"
+        ]);
+    }
+
+    public function eliminar_oficina() {
+        extract(Request::input());
+        if(isset($oid)) {
+            $usuario = Auth::user();
+            //dar de baja a los empleados de la oficina
+            DB::table("us_usuario_puesto")
+                ->where("id_empresa", $usuario->id_empresa)
+                ->whereRaw("id_puesto in (select pst.id_puesto from ma_puesto as pst where pst.id_oficina = ? and pst.id_empresa = ?)", [$oid, $usuario->id_empresa])
+                ->update([
+                    "st_vigente" => "N"
+                ]);
+            DB::table("ma_oficina")
+                ->where("id_empresa", $usuario->id_empresa)
+                ->where("id_oficina", $oid)
+                ->update([
+                    "st_oficina" => "N"
+                ]);
+            return Response::json([
+                "success" => true
+        ]);
         }
         return Response::json([
             "success" => false,

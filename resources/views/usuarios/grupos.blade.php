@@ -21,7 +21,8 @@
 							@else
 							<p class="card-text text-danger">No hay oficinas asignadas</p>
 							@endif
-							<a href="#" class="btn btn-primary" data-toggle="modal" data-target="#modal-asignar" data-gid="{{ $grupo->id }}">Ver áreas</a>
+							<a href="#" class="btn btn-primary" data-toggle="modal" data-target="#modal-asignar" data-gid="{{ $grupo->id }}" data-nom="{{ $grupo->nombre }}">Ver áreas</a>
+							<a href="#" class="btn btn-danger btn-remove" data-gid="{{ $grupo->id }}"><i class="fa fa-trash"></i> Eliminar</a>
 						</div>
 					</div>
 					@endforeach
@@ -86,6 +87,21 @@
 		<script type="text/javascript">
 			var oficinas = {!! json_encode($oficinas) !!};
 			document.getElementById("gr-nombre").value = "";
+			function RetiraOficina(evt) {
+				evt.preventDefault();
+				var a = $(this);
+				var grupo = $("#modal-asignar .modal-title").html();
+				var oficina = a.parent().prev().html();
+				if(window.confirm("¿Seguro que desea retirar la oficina " + oficina + " del grupo " + grupo + "?")) {
+					var p = { _token:"{{ csrf_token() }}", oid:a.data("oid"), gid:document.getElementById("modal-asignar-gid").value };
+					$.post("{{ url('usuarios/ajax/retirar-oficina') }}", p, function(response) {
+						if(response.success) {
+							a.parent().parent().remove();
+							alert("Se retiró a la oficina " + oficina + " del grupo de afinidad " + grupo);
+						}
+					}, "json");
+				}
+			}
 			$("#btn-grp-guardar").on("click", function(e) {
 				e.preventDefault();
 				$("#btn-grp-guardar").hide();
@@ -111,7 +127,9 @@
 								$("<td/>").html($("#gr-oficina option[value=" + p.oid + "]").html())
 							).append(
 								$("<td/>").append(
-									$("<a/>").attr("href","#").data("oid",p.oid).addClass("btn btn-danger btn-xs").html("Retirar")
+									$("<a/>").attr("href","#").data("oid",p.oid).addClass("btn btn-danger btn-xs").append(
+										$("<i/>").addClass("fa fa-trash")
+									).append(" Retirar").on("click", RetiraOficina)
 								)
 							)
 						);
@@ -122,6 +140,7 @@
 				var grupo = e.relatedTarget.dataset.gid;
 				var combo = $("#gr-oficina");
 				document.getElementById("modal-asignar-gid").value = grupo;
+				$("#modal-asignar .modal-title").html(e.relatedTarget.dataset.nom);
 				combo.empty().append(
 					$("<option/>").val(0).html("Seleccione oficina")
 				);
@@ -144,7 +163,9 @@
 									$("<td/>").html(fila.text)
 								).append(
 									$("<td/>").append(
-										$("<a/>").attr("href","#").data("oid",fila.value).addClass("btn btn-danger btn-xs").html("Retirar")
+										$("<a/>").attr("href","#").data("oid",fila.value).addClass("btn btn-danger btn-xs").append(
+											$("<i/>").addClass("fa fa-trash")
+										).append(" Retirar").on("click", RetiraOficina)
 									)
 								)
 							);
@@ -155,6 +176,21 @@
 			});
 			$("#modal-asignar-sv").on("click", function(e) {
 				location.reload();
+			});
+			$(".btn-remove").on("click", function(evt) {
+				evt.preventDefault();
+				var a = $(this);
+				var nombre = a.prev().prev().prev().html();
+				if(window.confirm("¿Seguro que desea eliminar el grupo " + nombre + "?")) {
+					var p = { _token:"{{ csrf_token() }}", gid:a.data("gid") };
+					$.post("{{ url('usuarios/ajax/retirar-grupo') }}", p, function(response) {
+						if(response.success) {
+							a.parent().parent().remove();
+							alert("se retiró el grupo " + nombre);
+						}
+						else alert(response.msg);
+					}, "json");
+				}
 			});
 		</script>
 	</body>
