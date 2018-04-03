@@ -71,6 +71,10 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 			Route::post("ins-subcategoria", "Preguntas@ins_subcategoria");
 			Route::post("ins-pregunta", "Preguntas@ins_pregunta");
 			Route::post("ls-subcategorias", "Preguntas@ls_subcategorias");
+			Route::post("del-grupo", "Preguntas@del_grupo");
+			Route::post("del-concepto", "Preguntas@del_concepto");
+			Route::post("del-categoria", "Preguntas@del_categoria");
+			Route::post("del-subcategoria", "Preguntas@del_subcategoria");
 		});
 	});
 	//modulo de encuestas
@@ -99,6 +103,7 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 			Route::post("ls-encuestas-informe", "Encuestas@ls_encuestas_informe");
 			Route::post("dt-progreso-encuesta", "Encuestas@dt_progreso_encuesta");
 			Route::post("del-encuesta", "Encuestas@del_encuesta");
+			Route::post("retira-evaluacion", "Encuestas@retira_evaluacion");
 		});
 	});
 	//modulo de resultados
@@ -111,6 +116,8 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 			Route::post("ls-puestos", "Resultados@ls_puestos");
 			Route::post("ls-personal", "Resultados@ls_personal");
 			Route::post("ch-colaborador", "Resultados@ch_colaborador");
+			Route::post("ls-recordatorios", "Resultados@ls_recordatorios");
+			Route::post("send-recordatorio", "Resultados@send_recordatorio");
 		});
 	});
 });
@@ -161,5 +168,11 @@ update ma_oficina set id_oficina_n0 = 39 where id_ancestro = 39;
 	update ma_oficina set id_oficina_n0 = 39 where id_ancestro = 40;
 	update ma_oficina set id_oficina_n0 = 39 where id_ancestro = 41;
 	update ma_oficina set id_oficina_n0 = 39 where id_ancestro = 42;
+
+ALTER TABLE us_usuario
+ADD COLUMN fe_ultimo_acceso DATETIME NULL DEFAULT NULL AFTER st_verifica_mail;
+
+ALTER TABLE ev_evaluacion 
+ADD COLUMN fe_ultimo_acceso DATETIME NULL DEFAULT NULL AFTER fe_comienzo;
 
 */

@@ -11,8 +11,8 @@
             .slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:25px;height:25px;border-radius:50%;background:#0d47a1;cursor:pointer}
             .slider::-moz-range-thumb{width:32px;height:32px;border-radius:50%;background:#0d47a1;cursor:pointer}
             .p-result{margin-top:10px}
-            .p-result>img{width:24px}
-            .list-group-item{padding:}
+            .p-result>img,.p-paragraph>img{width:24px}
+            .p-paragraph>b{font-size:1.15rem}
 		</style>
 	</head>
 	<body>
@@ -20,7 +20,7 @@
 		<!-- PAGINA -->
 		<div class="container">
 			<div class="row">
-				<form class="col" action="{{ url('responder/guardar') }}" method="post">
+				<form class="col-12 col-md-9" action="{{ url('responder/guardar') }}" method="post">
 					<h2 class="text-primary">Pregunta #{{ ($encuesta->actual < 10 ? "0" : "") . $encuesta->actual }}<br><span class="text-dark">{{ $pregunta->texto }}</span></h2>
 					<p class="text-secondary"><b class="text-danger">{{ $encuesta->nombre }}</b><br>{{ $pregunta->grupo }} > {{ $pregunta->concepto }} > {{ $pregunta->categoria }} > {{ $pregunta->subcategoria }}</p>
 					<input type="hidden" name="eid" value="{{ $eid }}">
@@ -46,8 +46,8 @@
 									<input type="hidden" name="ids[]" value="{{ implode('|', [$evaluado->uid, $evaluado->pid]) }}">
 									<input type="range" name="puntaje[]" min="1" max="5" value="3" step="1" class="slider">
 									<p class="text-secondary p-result">
-										<img src="{{ asset('images/faces/1.png') }}">
-										<span>Totalmente en desacuerdo</span>
+										<img src="{{ asset('images/faces/3.png') }}">
+										<span>Ni de acuerdo ni en desacuerdo</span>
 									</p>
 								</div>
 							</div>
@@ -59,6 +59,36 @@
 						<button class="btn btn-success"><i class="fa fa-check"></i> Siguiente pregunta</button>
 					</p>
 				</form>
+				<div class="col-12 col-md-3">
+					<div class="alert alert-secondary">
+						<h4 class="text-dark">Leyenda</h4>
+						<hr>
+						<p class="p-paragraph">
+							<img src="{{ asset('images/faces/1.png') }}">
+							<b style="color:#e53935;">1 </b> Totalmente en desacuerdo 
+						</p>
+						<hr>
+						<p class="p-paragraph">
+							<img src="{{ asset('images/faces/2.png') }}">
+							<b style="color:#ef6c00;">2</b> En desacuerdo 
+						</p>
+						<hr>
+						<p class="p-paragraph">
+							<img src="{{ asset('images/faces/3.png') }}">
+							<b style="color:#f9a825;">3</b> Ni de acuerdo ni en desacuerdo 
+						</p>
+						<hr>
+						<p class="p-paragraph">
+							<img src="{{ asset('images/faces/4.png') }}">
+							<b style="color:#1976d2;">4</b> De acuerdo 
+						</p>
+						<hr>
+						<p class="p-paragraph">
+							<img src="{{ asset('images/faces/5.png') }}">
+							<b style="color:#4caf50;">5</b> Totalmente de acuerdo 
+						</p>
+					</div>
+				</div>
 			</div>
 		</div>
 		<!-- JS -->

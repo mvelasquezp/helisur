@@ -32,10 +32,14 @@ class Empleados extends Controller {
             ->where("eval.id_evaluador", $usuario->id_usuario)
             ->where("eval.id_empresa", $usuario->id_empresa)
             ->select("enc.id_encuesta as eid", "enc.des_encuesta as encuesta", DB::raw("date_format(enc.fe_inicio,'%Y-%m-%d') as inicio"),
-                DB::raw("date_format(enc.fe_fin,'%Y-%m-%d') as fin"), "enc.num_preguntas as cant", "eval.nu_progreso as prog",
-                DB::raw("count(eval.id_usuario) as encuestas"))
-            ->groupBy("eid", "encuesta", "inicio", "fin", "cant", "prog")
+                DB::raw("date_format(enc.fe_fin,'%Y-%m-%d') as fin"), "eval.st_evaluacion as estado", "enc.num_preguntas as cant",
+                "eval.nu_progreso as prog", DB::raw("count(eval.id_usuario) as encuestas"))
+            ->groupBy("eid", "encuesta", "inicio", "fin", "estado", "cant", "prog")
             ->get();
+        DB::table("us_usuario")
+            ->where("id_usuario", $usuario->id_usuario)
+            ->where("id_empresa", $usuario->id_empresa)
+            ->update([ "fe_ultimo_acceso" => date("Y-m-d H:i:s") ]);
         $arrOpts = [
             "usuario" => $usuario,
             "entidad" => $entidad,
@@ -226,7 +230,7 @@ class Empleados extends Controller {
                     ->where("id_usuario", $vId[0])
                     ->where("id_puesto", $vId[1])
                     ->where("st_evaluacion", "En curso")
-                    ->increment("nu_progreso", 1);
+                    ->increment("nu_progreso", 1, ["fe_ultimo_acceso" => date("Y-m-d H:i:s")]);
             }
             else {
                 DB::table("ev_evaluacion")
@@ -237,7 +241,10 @@ class Empleados extends Controller {
                     ->where("id_usuario", $vId[0])
                     ->where("id_puesto", $vId[1])
                     ->where("st_evaluacion", "En curso")
-                    ->update([ "st_evaluacion" => "Valorando" ]);
+                    ->update([
+                        "st_evaluacion" => "Valorando",
+                        "fe_ultimo_acceso" => date("Y-m-d H:i:s")
+                    ]);
             }
         }
         $table = strcmp($ptp, "S") == 0 ? "ev_evaluacion_num" : "ev_evaluacion_txt";

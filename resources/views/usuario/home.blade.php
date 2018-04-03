@@ -26,12 +26,25 @@
 						<div class="card-body">
 							<h5 class="card-title">{{ $pendiente->encuesta }}</h5>
 							<h6 class="card-subtitle mb-2 text-muted">
-								{{ $pendiente->cant }} preguntas
+								{{ $pendiente->cant }} preguntas<br>
+								{{ $pendiente->encuestas }} evaluado(s)
 							</h6>
 							<p class="card-text text-muted">
+								@if(strcmp($pendiente->estado,"En curso") == 0)
 								Progreso: {{ $pendiente->prog }} / {{ $pendiente->cant }}
+								@elseif(strcmp($pendiente->estado,"Valorando") == 0)
+								Preguntas de valoración
+								@elseif(strcmp($pendiente->estado,"Finalizada") == 0)
+								Encuesta terminada
+								@else
+								Encuesta lista para comenzar
+								@endif
 							</p>
+							@if(strcmp($pendiente->estado,"Finalizada") == 0)
+							<a href="javascript:void(0)" class="btn btn-success"><i class="fa fa-smile-o"></i> Gracias por participar</a>
+							@else
 							<a href="{{ url('responder', [$pendiente->eid]) }}" class="btn btn-primary">{{ $pendiente->prog == 0 ? "Iniciar" : "Continuar" }}</a>
+							@endif
 						</div>
 					</div>
 					@endforeach

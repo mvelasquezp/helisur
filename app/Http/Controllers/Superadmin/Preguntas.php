@@ -39,7 +39,7 @@ class Preguntas extends Controller {
             ->get();
         $subcategorias = DB::table("ev_subcategoria as scat")
             ->join("ev_categoria as cat", "scat.id_categoria", "=", "cat.id_categoria")
-            ->select("scat.id_subcategoria as id", "cat.des_categoria as categoria", "scat.des_subcategoria as nombre", "scat.st_vigente as estado")
+            ->select("scat.id_subcategoria as id", "cat.des_categoria as categoria", "scat.des_subcategoria as nombre", "scat.st_vigente as estado", "scat.id_categoria as gato")
             ->orderBy("scat.st_vigente", "desc")
             ->orderBy("scat.des_subcategoria", "asc")
             ->get();
@@ -219,6 +219,71 @@ class Preguntas extends Controller {
             return Response::json([
                 "success" => true,
                 "data" => $subcategorias
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+    }
+
+    public function del_grupo() {
+        extract(Request::input());
+        if(isset($gid)) {
+            $grupos = DB::table("ev_grupo")
+                ->where("id_grupo", $gid)
+                ->update(["st_vigente" => "N"]);
+            return Response::json([
+                "success" => true
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+    }
+
+    public function del_concepto() {
+        extract(Request::input());
+        if(isset($nid)) {
+            $grupos = DB::table("ev_concepto")
+                ->where("id_concepto", $nid)
+                ->update(["st_vigente" => "N"]);
+            return Response::json([
+                "success" => true
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+    }
+
+    public function del_categoria() {
+        extract(Request::input());
+        if(isset($cid)) {
+            $grupos = DB::table("ev_categoria")
+                ->where("id_categoria", $cid)
+                ->update(["st_vigente" => "N"]);
+            return Response::json([
+                "success" => true
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+    }
+
+    public function del_subcategoria() {
+        extract(Request::input());
+        if(isset($cid, $sid)) {
+            $grupos = DB::table("ev_subcategoria")
+                ->where("id_categoria", $cid)
+                ->where("id_subcategoria", $sid)
+                ->update(["st_vigente" => "N"]);
+            return Response::json([
+                "success" => true
             ]);
         }
         return Response::json([

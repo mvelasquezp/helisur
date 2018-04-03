@@ -223,4 +223,60 @@ class Resultados extends Controller {
         ]);
     }
 
+    public function ls_recordatorios() {
+        extract(Request::input());
+        if(isset($eva, $peva, $eid)) {
+            $usuario = Auth::user();
+            $recordatorios = DB::table("ev_recordatorio as rec")
+                ->join("us_usuario_puesto as upt", function($join_upt) {
+                    $join_upt->on("rec.id_usuario", "=", "upt.id_usuario")
+                        ->on("rec.id_puesto", "=", "upt.id_puesto")
+                        ->on("rec.id_empresa", "=", "upt.id_empresa");
+                })
+                ->join("us_usuario as usr", function($join_usr) {
+                    $join_usr->on("usr.id_empresa", "=", "upt.id_empresa")
+                        ->on("usr.id_usuario", "=", "upt.id_usuario");
+                })
+                ->where("rec.id_encuesta", $eid)
+                ->where("rec.id_empresa", $usuario->id_empresa)
+                ->where("rec.id_usuario", $eva)
+                ->where("rec.id_puesto", $peva)
+                ->select(DB::raw("date_format(rec.fe_envio,'%Y-%m-%d %H:%i:%s') as fecha"), "usr.des_email as mail")
+                ->orderBy("rec.fe_envio", "desc")
+                ->get();
+            return Response::json([
+                "success" => true,
+                "data" => [
+                    "datos" => $recordatorios
+                ]
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+    }
+
+    public function send_recordatorio() {
+        extract(Request::input());
+        if(isset($eva, $peva, $eid)) {
+            $usuario = Auth::user();
+            //enviar el pinshi mail
+            DB::table("ev_recordatorio")->insert([
+                "id_encuesta" => $eid,
+                "id_empresa" => $usuario->id_empresa,
+                "id_usuario" => $usuario->id_usuario,
+                "id_puesto" => $peva,
+                "fe_envio" => date("Y-m-d H:i:s")
+            ]);
+            return Response::json([
+                "success" => true
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+    }
+
 }

@@ -66,7 +66,13 @@
 									<p class="text-secondary">{{ $fila->pevo }} | {{ $fila->oevo }}</p>
 								</td>
 								<td>
+									@if(strcmp($fila->estado,"Programado") == 0)
 									<a href="#" class="btn btn-danger btn-xs btn-retira" data-eva="{{ $fila->auid }}" data-peva="{{ $fila->apid }}" data-evo="{{ $fila->ouid }}" data-pevo="{{ $fila->opid }}" data-enc="{{ $encuesta->id }}" data-nom="{{ $encuesta->nombre }}"><i class="fa fa-remove"></i> Retirar</a>
+									@elseif(strcmp($fila->estado,"Finalizada") == 0)
+									<a href="#" class="btn btn-success btn-xs"><i class="fa fa-check"></i> Terminada</a>
+									@else
+									<a href="#" class="btn btn-primary btn-xs" data-eva="{{ $fila->auid }}" data-peva="{{ $fila->apid }}" data-evo="{{ $fila->ouid }}" data-pevo="{{ $fila->opid }}" data-enc="{{ $encuesta->id }}" data-nom="{{ $encuesta->nombre }}"><i class="fa fa-refresh"></i> Ingresar</a>
+									@endif
 								</td>
 							</tr>
 							@endforeach
@@ -418,8 +424,14 @@
 						pevo: a.data("pevo"),
 						eid: a.data("enc")
 					};
-					//$.post();
+					$.post("{{ url('encuestas/ajax/retira-evaluacion') }}", p, function(response) {
+						if(response.success) location.reload();
+						else alert(response.msg);
+					}, "json");
 				}
+			});
+			$("#modal-usuario").on("shown.bs.modal", function(evt) {
+				document.getElementById("mod-keyword").focus();
 			});
 			function toggleRow(event) {
 				event.preventDefault();

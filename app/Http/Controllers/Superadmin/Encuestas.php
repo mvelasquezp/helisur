@@ -101,7 +101,8 @@ class Encuestas extends Controller {
         $programacion = DB::table("ev_evaluacion as eval")
             ->join("us_usuario_puesto as upta", function($join_upta) {
                 $join_upta->on("eval.id_usuario", "=", "upta.id_usuario")
-                    ->on("eval.id_empresa", "=", "upta.id_empresa");
+                    ->on("eval.id_empresa", "=", "upta.id_empresa")
+                    ->on("eval.id_puesto", "=", "upta.id_puesto");
             })
             ->join("us_usuario as usra", function($join_usra) {
                 $join_usra->on("upta.id_usuario", "=", "usra.id_usuario")
@@ -118,7 +119,8 @@ class Encuestas extends Controller {
             })
             ->join("us_usuario_puesto as uptb", function($join_uptb) {
                 $join_uptb->on("eval.id_evaluador", "=", "uptb.id_usuario")
-                    ->on("eval.id_empresa", "=", "uptb.id_empresa");
+                    ->on("eval.id_empresa", "=", "uptb.id_empresa")
+                    ->on("eval.id_puesto_evaluador", "=", "uptb.id_puesto");
             })
             ->join("us_usuario as usrb", function($join_usrb) {
                 $join_usrb->on("uptb.id_usuario", "=", "usrb.id_usuario")
@@ -138,7 +140,7 @@ class Encuestas extends Controller {
             ->select(DB::raw("concat(enta.des_nombre_1,' ',enta.des_nombre_2,', ',enta.des_nombre_3) as nevo"),"psta.des_puesto as pevo",
                 "ofca.des_oficina as oevo",DB::raw("concat(entb.des_nombre_1,' ',entb.des_nombre_2,', ',entb.des_nombre_3) as neva"),
                 "pstb.des_puesto as peva","ofcb.des_oficina as oeva","eval.id_usuario as ouid","eval.id_puesto as opid","eval.id_evaluador as auid",
-                "eval.id_puesto_evaluador as apid")
+                "eval.id_puesto_evaluador as apid", "eval.st_evaluacion as estado")
             ->orderBy("neva","asc")
             ->orderBy("nevo", "asc")
             ->get();
@@ -435,9 +437,11 @@ class Encuestas extends Controller {
         if(isset($eid, $arr)) {
             $usuario = Auth::user();
             $arr_insert = [];
+            $arr_auto = [];
             foreach ($arr as $idx => $row) {
                 $vRow = explode("|", $row);
                 //par.eva + "|" + par.pta + "|" + par.evo + "|" + par.pto
+                if(!isset($arr_auto[$vRow[2]])) $arr_auto[$vRow[2]] = $vRow[3];
                 $arr_insert[] = [
                     "id_encuesta" => $eid,
                     "id_empresa" => $usuario->id_empresa,
@@ -445,6 +449,18 @@ class Encuestas extends Controller {
                     "id_puesto" => $vRow[3],
                     "id_evaluador" => $vRow[0],
                     "id_puesto_evaluador" => $vRow[1],
+                    "st_evaluacion" => "Programado",
+                    "nu_progreso" => 0
+                ];
+            }
+            foreach ($arr_auto as $eva => $peva) {
+                $arr_insert[] = [
+                    "id_encuesta" => $eid,
+                    "id_empresa" => $usuario->id_empresa,
+                    "id_usuario" => $eva,
+                    "id_puesto" => $peva,
+                    "id_evaluador" => $eva,
+                    "id_puesto_evaluador" => $peva,
                     "st_evaluacion" => "Programado",
                     "nu_progreso" => 0
                 ];
@@ -644,8 +660,9 @@ class Encuestas extends Controller {
                 ->join("ma_entidad as ent", "usr.cod_entidad", "=", "ent.cod_entidad")
                 ->where("eval.id_empresa", $usuario->id_empresa)
                 ->whereIn("eval.id_encuesta", $eid)
+                ->whereIn("eval.st_evaluacion", ["Programado", "En curso", "Valorando"])
                 ->select("pst.des_puesto as puesto",DB::raw("concat(ent.des_nombre_1,' ',ent.des_nombre_2,' ',ent.des_nombre_3) as nombre"),
-                    "ofc.des_oficina as oficina","usr.des_email as email","usr.st_verifica_mail as stmail",DB::raw("count(distinct eval.id_encuesta) as cantidad"))
+                    "ofc.des_oficina as oficina","usr.des_email as email","usr.st_verifica_mail as stmail",DB::raw("count(distinct eval.id_usuario) as cantidad"))
                 ->groupBy("puesto", "oficina", "nombre", "email", "stmail")
                 ->get();
             return Response::json([
@@ -767,10 +784,13 @@ class Encuestas extends Controller {
                 ->join("ma_entidad as ento", "evou.cod_entidad", "=", "ento.cod_entidad")
                 ->where("eval.id_encuesta", $eid)
                 ->where("eval.id_empresa", $usuario->id_empresa)
+                ->where("eval.st_evaluacion", "<>", "Anulada")
                 ->select(DB::raw("concat(enta.des_nombre_1,' ',enta.des_nombre_2,' ',enta.des_nombre_3) as evaluador"),"evap.des_puesto as apuesto",
                     "evao.des_oficina as aoficina",DB::raw("concat(ento.des_nombre_1,' ',ento.des_nombre_2,' ',ento.des_nombre_3) as evaluado"),
                     "evop.des_puesto as opuesto","evoo.des_oficina as ooficina","eval.st_evaluacion as estado","eval.nu_progreso as progreso",
-                    DB::raw("ifnull(date_format(eval.fe_comienzo,'%Y-%m-%d'),'(no iniciada)') as inicio"), "enc.num_preguntas as preguntas")
+                    DB::raw("ifnull(date_format(eval.fe_comienzo,'%Y-%m-%d'),'(no iniciada)') as inicio"), "enc.num_preguntas as preguntas",
+                    DB::raw("ifnull(date_format(eval.fe_ultimo_acceso,'%Y-%m-%d %H:%i:%s'),'(no iniciada)') as ultimo"), "eval.id_evaluador as eva",
+                    "eval.id_puesto_evaluador as peva", "eval.id_encuesta as eid")
                 ->orderBy("evaluador", "asc")
                 ->orderBy("evaluado", "asc")
                 ->get();
@@ -796,6 +816,31 @@ class Encuestas extends Controller {
                 ->where("id_encuesta", $eid)
                 ->update([
                     "st_encuesta" => "Retirada"
+                ]);
+            return Response::json([
+                "success" => true
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+    }
+
+    public function retira_evaluacion() {
+        extract(Request::input());
+        if(isset($eva, $peva, $evo, $pevo, $eid)) {
+            $usuario = Auth::user();
+            DB::table("ev_evaluacion")
+                ->where("id_evaluador", $eva)
+                ->where("id_puesto_evaluador", $peva)
+                ->where("id_usuario", $evo)
+                ->where("id_puesto", $pevo)
+                ->where("id_encuesta", $eid)
+                ->where("id_empresa", $usuario->id_empresa)
+                ->update([
+                    "st_evaluacion" => "Anulada",
+                    "nu_progreso" => 0
                 ]);
             return Response::json([
                 "success" => true

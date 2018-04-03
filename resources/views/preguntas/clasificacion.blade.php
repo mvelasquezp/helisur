@@ -42,7 +42,13 @@
 											<span class="btn btn-primary btn-xs">{{ $idx + 1 }}</span>
 										</td>
 										<td>{{ $grupo->nombre }}</td>
-										<td><a href="#" class="btn btn-danger btn-xs"><i class="fa fa-remove"></i> Retirar</a></td>
+										<td>
+											@if(strcmp($grupo->estado, "S") == 0)
+											<a href="#" class="btn btn-danger btn-xs btn-del-grupo" data-gid="{{ $grupo->id }}"><i class="fa fa-remove"></i> Retirar</a>
+											@else
+											<a href="#" class="btn btn-primary btn-xs btn-act-grupo" data-gid="{{ $grupo->id }}"><i class="fa fa-refresh"></i> Activar</a>
+											@endif
+										</td>
 									</tr>
 									@endforeach
 									<tr>
@@ -69,7 +75,13 @@
 											<span class="btn btn-primary btn-xs">{{ $idx + 1 }}</span>
 										</td>
 										<td>{{ $concepto->nombre }}</td>
-										<td><a href="#" class="btn btn-danger btn-xs"><i class="fa fa-remove"></i> Retirar</a></td>
+										<td>
+											@if(strcmp($concepto->estado, "S") == 0)
+											<a href="#" class="btn btn-danger btn-xs btn-del-concepto" data-nid="{{ $concepto->id }}"><i class="fa fa-remove"></i> Retirar</a>
+											@else
+											<a href="#" class="btn btn-primary btn-xs btn-act-concepto" data-nid="{{ $concepto->id }}"><i class="fa fa-refresh"></i> Activar</a>
+											@endif
+										</td>
 									</tr>
 									@endforeach
 									<tr>
@@ -96,7 +108,13 @@
 											<span class="btn btn-primary btn-xs">{{ $idx + 1 }}</span>
 										</td>
 										<td>{{ $categoria->nombre }}</td>
-										<td><a href="#" class="btn btn-danger btn-xs"><i class="fa fa-remove"></i> Retirar</a></td>
+										<td>
+											@if(strcmp($categoria->estado, "S") == 0)
+											<a href="#" class="btn btn-danger btn-xs btn-del-categoria" data-cid="{{ $categoria->id }}"><i class="fa fa-remove"></i> Retirar</a>
+											@else
+											<a href="#" class="btn btn-primary btn-xs btn-act-categoria" data-cid="{{ $categoria->id }}"><i class="fa fa-refresh"></i> Activar</a>
+											@endif
+										</td>
 									</tr>
 									@endforeach
 									<tr>
@@ -125,7 +143,13 @@
 										</td>
 										<td>{{ $subcategoria->categoria }}</td>
 										<td>{{ $subcategoria->nombre }}</td>
-										<td><a href="#" class="btn btn-danger btn-xs"><i class="fa fa-remove"></i> Retirar</a></td>
+										<td>
+											@if(strcmp($subcategoria->estado, "S") == 0)
+											<a href="#" class="btn btn-danger btn-xs btn-del-subcategoria" data-sid="{{ $subcategoria->id }}" data-cid="{{ $subcategoria->gato }}"><i class="fa fa-remove"></i> Retirar</a>
+											@else
+											<a href="#" class="btn btn-primary btn-xs btn-act-subcategoria" data-sid="{{ $subcategoria->id }}" data-cid="{{ $subcategoria->gato }}"><i class="fa fa-refresh"></i> Activar</a>
+											@endif
+										</td>
 									</tr>
 									@endforeach
 									<tr>
@@ -134,7 +158,9 @@
 											<select class="form-control form-control-sm" id="ins-subcategoria-cat">
 												<option value="0" selected disabled>Seleccione</option>
 												@foreach($categorias as $idx => $categoria)
+												@if(strcmp($categoria->estado,"S") == 0)
 												<option value="{{ $categoria->id }}">{{ $categoria->nombre }}</option>
+												@endif
 												@endforeach
 											</select>
 										</td>
@@ -232,10 +258,66 @@
 				}
 				else alert("Ingrese correctamente la categoría y el nombre");
 			}
+			function EliminarGrupo(event) {
+				event.preventDefault();
+				if(window.confirm("¿Seguro que desea eliminar al grupo?")) {
+					var a = $(this);
+					var p = { _token:"{{ csrf_token() }}",gid:a.data("gid") };
+					$.post("{{ url('preguntas/ajax/del-grupo') }}", p, function(response) {
+						if(response.success) {
+							alert("Se retiró al grupo");
+							location.reload();
+						}
+					}, "json");
+				}
+			}
+			function EliminarConcepto(event) {
+				event.preventDefault();
+				if(window.confirm("¿Seguro que desea eliminar al concepto?")) {
+					var a = $(this);
+					var p = { _token:"{{ csrf_token() }}",nid:a.data("nid") };
+					$.post("{{ url('preguntas/ajax/del-concepto') }}", p, function(response) {
+						if(response.success) {
+							alert("Se retiró al concepto");
+							location.reload();
+						}
+					}, "json");
+				}
+			}
+			function EliminarCategoria(event) {
+				event.preventDefault();
+				if(window.confirm("¿Seguro que desea eliminar la categoria?")) {
+					var a = $(this);
+					var p = { _token:"{{ csrf_token() }}",cid:a.data("cid") };
+					$.post("{{ url('preguntas/ajax/del-categoria') }}", p, function(response) {
+						if(response.success) {
+							alert("Se retiró la categoria");
+							location.reload();
+						}
+					}, "json");
+				}
+			}
+			function EliminarSubcategoria(event) {
+				event.preventDefault();
+				if(window.confirm("¿Seguro que desea eliminar la subcategoria?")) {
+					var a = $(this);
+					var p = { _token:"{{ csrf_token() }}",sid:a.data("sid"),cid:a.data("cid") };
+					$.post("{{ url('preguntas/ajax/del-subcategoria') }}", p, function(response) {
+						if(response.success) {
+							alert("Se retiró la subcategoria");
+							location.reload();
+						}
+					}, "json");
+				}
+			}
 			$("#btn-ins-grupo").on("click", RegistraGrupo);
 			$("#btn-ins-concepto").on("click", RegistraConcepto);
 			$("#btn-ins-categoria").on("click", RegistraCategoria);
 			$("#btn-ins-subcategoria").on("click", RegistraSubcategoria);
+			$(".btn-del-grupo").on("click", EliminarGrupo);
+			$(".btn-del-concepto").on("click", EliminarConcepto);
+			$(".btn-del-categoria").on("click", EliminarCategoria);
+			$(".btn-del-subcategoria").on("click", EliminarSubcategoria);
 		</script>
 	</body>
 </html>
