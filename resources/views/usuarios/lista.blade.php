@@ -84,8 +84,10 @@
 								<td>
 									@if(strcmp($empleado->vmail,'S') == 0)
 									<a href="#" class="btn btn-success btn-xs">{{ $empleado->email }}</a>
+									@elseif(strcmp($empleado->vmail,'P') == 0)
+									<a href="#" class="btn btn-info btn-xs" title="Enviar recordatorio" data-toggle="modal" data-target="#modal-activar" data-uid="{{ $empleado->id }}" data-pid="{{ $empleado->ptid }}" data-mail="{{ $empleado->email }}">{{ $empleado->email }}</a>
 									@else
-									<a href="#" class="btn btn-danger btn-xs" title="Enviar recordatorio">{{ $empleado->email }}</a>
+									<a href="#" class="btn btn-danger btn-xs" title="Enviar recordatorio" data-toggle="modal" data-target="#modal-activar" data-uid="{{ $empleado->id }}" data-pid="{{ $empleado->ptid }}" data-mail="{{ $empleado->email }}">{{ $empleado->email }}</a>
 									@endif
 								</td>
 								<td>{{ $empleado->telefono }}</td>
@@ -228,6 +230,35 @@
 				</div>
 			</div>
 		</div>
+		<!-- Modal -->
+		<div class="modal fade" id="modal-activar" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="exampleModalLabel">Activación de correos</h5>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<input type="hidden" id="modal-activar-uid">
+						<input type="hidden" id="modal-activar-pid">
+						<div class="row">
+							<div class="col">
+								<p class="text-dark">Se enviará un mensaje de activación a la cuenta de correo <b id="modal-activar-mail"></b>. Pulse el siguiente botón para hacerlo.</p>
+								<p class="text-right"><a id="modal-activar-one" href="#" class="btn btn-success btn-sm"><i class="fa fa-envelope-o"></i> Enviar recordatorio</a></p>
+								<hr>
+								<p class="text-secondary">Si lo desea, utilice la siguiente opción para enviar notificaciones a todas las cuentas de correo sin verificar.</p>
+								<p class="text-right"><a id="modal-activar-all" href="#" class="btn btn-primary btn-sm"><i class="fa fa-users"></i> Enviar correo de activación a todas las cuentas</a></p>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+					</div>
+				</div>
+			</div>
+		</div>
 		<!-- JS -->
 		@include("common.scripts")
 		<script type="text/javascript">
@@ -352,6 +383,12 @@
 						$("#modal-registro").modal("hide");
 					}
 				}, "json");
+			});
+			$("#modal-activar").on("show.bs.modal", function(args) {
+				var data = args.relatedTarget.dataset;
+				document.getElementById("modal-activar-mail").innerHTML = data.mail;
+				document.getElementById("modal-activar-uid").value = data.uid;
+				document.getElementById("modal-activar-pid").value = data.pid;
 			});
 			$("modal-registro").on("hidden.bs.modal", function() {
 				document.getElementById("modal-registro-header").innerHTML = "Editando usuario";
@@ -507,6 +544,46 @@
 				var input = $(this);
 				input.val(input.val().toUpperCase());
 				return true;
+			});
+			$("#modal-activar-one").on("click", function(evt) {
+				evt.preventDefault();
+				$("#modal-activar-one").hide();
+				$("#modal-activar-all").hide();
+				var p = {
+					_token: "{{ csrf_token() }}",
+					uid: document.getElementById("modal-activar-uid").value,
+					pid: document.getElementById("modal-activar-pid").value
+				};
+				$.post("{{ url('mailer/activacion') }}", p, function(response) {
+					$("#modal-activar-one").show();
+					$("#modal-activar-all").show();
+					if(response.success) {
+						alert("Se envió el correo de activación.");
+						location.reload();
+					}
+				}, "json");
+			});
+			$("#modal-activar-all").on("click", function(evt) {
+				evt.preventDefault();
+				if(window.confirm("Se enviarán los correos de confirmación a los usuarios que no han activado su correo. Esto podría tardar varios minutos dependiendo del total de direcciones de correo que no han sido confirmadas. ¿Desea continuar?")) {
+					$("#modal-activar-one").hide();
+					$("#modal-activar-all").hide();
+					var p = { _token: "{{ csrf_token() }}" };
+					$("#modal-activar .modal-footer button").html("Enviando los mensajes. Por favor, espere...");
+					$.post("{{ url('mailer/activacion-all') }}", p, function(response) {
+						$("#modal-activar-one").show();
+						$("#modal-activar-all").show();
+						if(response.success) {
+							alert("Se enviaron los correos de activación.");
+							location.reload();
+						}
+					}, "json").fail(function(err) {
+console.log(err);
+						$("#modal-activar-one").show();
+						$("#modal-activar-all").show();
+						$("#modal-activar .modal-footer button").html("Ocurrió un error");
+					});
+				}
 			});
 		</script>
 	</body>

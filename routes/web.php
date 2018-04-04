@@ -21,12 +21,20 @@ Route::group(["prefix" => "login"], function() {
 Route::middleware("auth")->namespace("Publico")->group(function() {
 	Route::get("/", "Empleados@resumen");
 	Route::get("imagen/{uid}", "Empleados@imagen");
+	//respuestas
 	Route::prefix("responder")->group(function() {
 		Route::get("{eid}", "Empleados@responder");
 		Route::get("comenzar/{eid}", "Empleados@comenzar");
 		Route::post("guardar", "Empleados@guardar");
 		Route::post("valorar", "Empleados@valorar");
 	});
+	//mailer
+	Route::prefix("mailer")->group(function() {
+		Route::post("activacion", "Mailer@activacion");
+		Route::post("activacion-all", "Mailer@activacion_all");
+	});
+	//pruebas
+	Route::get("mail", "Mailer@mail");
 });
 //modulo de resumen
 Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(function() {
@@ -174,5 +182,43 @@ ADD COLUMN fe_ultimo_acceso DATETIME NULL DEFAULT NULL AFTER st_verifica_mail;
 
 ALTER TABLE ev_evaluacion 
 ADD COLUMN fe_ultimo_acceso DATETIME NULL DEFAULT NULL AFTER fe_comienzo;
+
+
+
+APP_NAME=Laravel
+APP_ENV=local
+APP_KEY=base64:4Tp7jXCJ7Q3SlSd9Uk/roVPQZ2ddt+ERFbbLD+k4anQ=
+APP_DEBUG=true
+APP_LOG_LEVEL=debug
+APP_URL=http://localhost
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=hls
+DB_USERNAME=root
+DB_PASSWORD=
+
+BROADCAST_DRIVER=log
+CACHE_DRIVER=file
+SESSION_DRIVER=file
+QUEUE_DRIVER=sync
+
+REDIS_HOST=127.0.0.1
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+
+MAIL_DRIVER=smtp
+MAIL_HOST=smtp.mailtrap.io
+MAIL_PORT=25
+MAIL_USERNAME=f59f167226b022
+MAIL_PASSWORD=47a36b814b1f5a
+MAIL_ENCRYPTION=tls
+MAIL_NAME="Encuestas Helisur"
+MAIL_FROM=encuestas@helisur.com
+
+PUSHER_APP_ID=
+PUSHER_APP_KEY=
+PUSHER_APP_SECRET=
 
 */

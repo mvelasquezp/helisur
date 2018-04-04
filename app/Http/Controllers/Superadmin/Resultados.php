@@ -262,6 +262,20 @@ class Resultados extends Controller {
         if(isset($eva, $peva, $eid)) {
             $usuario = Auth::user();
             //enviar el pinshi mail
+            $evaluador = DB::table("us_usuario as usr")
+                ->join("ma_entidad as ent", "usr.cod_entidad", "=", "ent.cod_entidad")
+                ->select("ent.des_nombre_3 as nombre", "ent.des_nombre_1 as apepat", "usr.id_usuario as id", "usr.des_email as mail")
+                ->where("usr.id_usuario", $eva)
+                ->first();
+            $data = [
+                "usuario" => $evaluador
+            ];
+            \Mail::send("email.recordatorio_encuesta", $data, function($message) use($evaluador) {
+                $message->to($evaluador->mail, $evaluador->nombre . " " . $evaluador->apepat)
+                    ->subject("Tienes evaluaciones pendientes");
+                $message->from(env("MAIL_FROM"), env("MAIL_NAME"));
+            });
+            //actualiza la bd
             DB::table("ev_recordatorio")->insert([
                 "id_encuesta" => $eid,
                 "id_empresa" => $usuario->id_empresa,
