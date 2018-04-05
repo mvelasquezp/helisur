@@ -60,7 +60,7 @@ class Mailer extends Controller {
                 ->first();
             $data = [
                 "usuario" => $usuario,
-                "hash1" => $this->generateRandomString(32),
+                "hash1" => $user->id_empresa . "_" . $this->generateRandomString(32),
                 "hash2" => $this->generateRandomString(32)
             ];
             //actualiza el flag del usuario
