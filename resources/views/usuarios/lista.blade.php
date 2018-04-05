@@ -83,7 +83,7 @@
 								</td>
 								<td>
 									@if(strcmp($empleado->vmail,'S') == 0)
-									<a href="#" class="btn btn-success btn-xs">{{ $empleado->email }}</a>
+									<a href="javascript:void(0)" class="btn btn-success btn-xs">{{ $empleado->email }}</a>
 									@elseif(strcmp($empleado->vmail,'P') == 0)
 									<a href="#" class="btn btn-info btn-xs" title="Enviar recordatorio" data-toggle="modal" data-target="#modal-activar" data-uid="{{ $empleado->id }}" data-pid="{{ $empleado->ptid }}" data-mail="{{ $empleado->email }}">{{ $empleado->email }}</a>
 									@else

@@ -18,10 +18,13 @@ Route::group(["prefix" => "login"], function() {
 	Route::get("logout", "Autenticacion@logout");
 });
 //modulo publico
+Route::middleware("guest")->namespace("Noauth")->group(function() {
+	Route::get("verificar/{hash1}/{hash2}", "Guest@verificar");
+});
+//modulo empleados
 Route::middleware("auth")->namespace("Publico")->group(function() {
 	Route::get("/", "Empleados@resumen");
 	Route::get("imagen/{uid}", "Empleados@imagen");
-	Route::get("verificar/{hash1}/{hash2}", "Empleados@verificar");
 	//respuestas
 	Route::prefix("responder")->group(function() {
 		Route::get("{eid}", "Empleados@responder");

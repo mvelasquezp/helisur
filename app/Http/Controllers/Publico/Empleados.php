@@ -18,7 +18,9 @@ class Empleados extends Controller {
      */
 
     public function __construct() {
-        $this->middleware("auth", ["except" => ["registro"]]);
+        $this->middleware("auth", ["except" => [
+            "verificar/*"
+        ]]);
     }
 
     public function resumen() {
@@ -47,7 +49,7 @@ class Empleados extends Controller {
             "pendientes" => $pendientes
         ];
         return view("usuario.home")->with($arrOpts);
-    }
+    }/*
 
     public function verificar($hash1, $hash2) {
         $vEmpresa = explode("_", $hash1);
@@ -69,7 +71,7 @@ class Empleados extends Controller {
             "usuario" => $usuario
         ];
         return view("usuario.registro")->with($arrData);
-    }
+    }*/
 
     public function imagen($uid) {
         $usuario = DB::table("us_usuario")->where("id_usuario", $uid);
