@@ -279,7 +279,7 @@ class Resultados extends Controller {
             DB::table("ev_recordatorio")->insert([
                 "id_encuesta" => $eid,
                 "id_empresa" => $usuario->id_empresa,
-                "id_usuario" => $usuario->id_usuario,
+                "id_usuario" => $eva,
                 "id_puesto" => $peva,
                 "fe_envio" => date("Y-m-d H:i:s")
             ]);

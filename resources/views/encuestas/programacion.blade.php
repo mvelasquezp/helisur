@@ -577,6 +577,33 @@
 					}, "json");
 				}
 			});
+			$("#modal-revisar-table-cuestionario-filtro").on("keyup", function() {
+				var txt = $(this).val().toUpperCase();
+				var trs = $("#modal-revisar-table-cuestionario").children("tr");
+				$.each(trs, function() {
+					var tr = $(this);
+					if(tr.children("td").eq(0).html().indexOf(txt) > -1) tr.show();
+					else tr.hide();
+				});
+			});
+			$("#modal-gestionar-table-todo-filtro").on("keyup", function() {
+				var txt = $(this).val().toUpperCase();
+				var trs = $("#modal-gestionar-table-todo").children("tr");
+				$.each(trs, function() {
+					var tr = $(this);
+					if(tr.children("td").eq(0).html().indexOf(txt) > -1) tr.show();
+					else tr.hide();
+				});
+			});
+			$("#modal-gestionar-table-cuestionario-filtro").on("keyup", function() {
+				var txt = $(this).val().toUpperCase();
+				var trs = $("#modal-gestionar-table-cuestionario").children("tr");
+				$.each(trs, function() {
+					var tr = $(this);
+					if(tr.children("td").eq(0).html().indexOf(txt) > -1) tr.show();
+					else tr.hide();
+				});
+			});
 		</script>
 	</body>
 </html>

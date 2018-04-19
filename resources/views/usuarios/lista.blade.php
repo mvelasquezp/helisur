@@ -559,7 +559,7 @@
 					$("#modal-activar-all").show();
 					if(response.success) {
 						alert("Se envió el correo de activación.");
-						location.reload();
+//						location.reload();
 					}
 				}, "json");
 			});

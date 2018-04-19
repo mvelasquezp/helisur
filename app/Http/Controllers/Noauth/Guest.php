@@ -43,4 +43,23 @@ class Guest extends Controller {
         return view("usuario.registro")->with($arrData);
     }
 
+    //excel
+
+    public function excel() {
+        //header('Content-type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment; filename=hoja_calculo.xls');
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header("Pragma: no-cache");
+        header("Expires: 0");
+        //return view("xls");
+        echo "<table>";
+        echo "<tr>";
+        echo "<td style=\"background-color:#ff0000;\">columna 0</td>";
+        echo "<td style=\"color:#0000ff;\">columna 1</td>";
+        echo "<td>columna 2</td>";
+        echo "<td>columna 3</td>";
+        echo "</tr>";
+        echo "</table>";
+    }
+
 }

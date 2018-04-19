@@ -18,8 +18,10 @@ Route::group(["prefix" => "login"], function() {
 	Route::get("logout", "Autenticacion@logout");
 });
 //modulo publico
-Route::middleware("guest")->namespace("Noauth")->group(function() {
+Route::group(["namespace" => "Noauth"], function() {
 	Route::get("verificar/{hash1}/{hash2}", "Guest@verificar");
+	//prueba excel
+	Route::get("excel", "Guest@excel");
 });
 //modulo empleados
 Route::middleware("auth")->namespace("Publico")->group(function() {

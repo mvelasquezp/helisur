@@ -237,7 +237,7 @@ class Empleados extends Controller {
                 "num_orden" => $nmp,
                 "num_respuesta" => $puntaje[$idx],
                 "id_encuesta" => $eid,
-                "id_empresa" =>  $usuario->id_usuario,
+                "id_empresa" =>  $usuario->id_empresa,
                 "id_pregunta" => $pid,
                 "id_usuario" => $vId[0], 
                 "id_puesto" => $vId[1],
