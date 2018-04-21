@@ -38,6 +38,7 @@ Route::middleware("auth")->namespace("Publico")->group(function() {
 	Route::prefix("mailer")->group(function() {
 		Route::post("activacion", "Mailer@activacion");
 		Route::post("activacion-all", "Mailer@activacion_all");
+		Route::post("reset-password", "Mailer@reset_password");
 	});
 	//pruebas
 	Route::get("mail", "Mailer@mail");
@@ -70,6 +71,10 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 			Route::post("retirar-grupo", "Usuarios@retirar_grupo");
 			Route::post("retirar-oficina", "Usuarios@retirar_oficina");
 			Route::post("eliminar-oficina", "Usuarios@eliminar_oficina");
+		});
+		Route::prefix("mails")->group(function() {
+			Route::get("activacion", "Usuarios@activacion");
+			Route::get("notificacion", "Usuarios@notificacion");
 		});
 	});
 	//modulo de preguntas

@@ -45,7 +45,9 @@
 								<a class="dropdown-item" href="{{ url('usuarios/organigrama') }}"><i class="fa fa-sitemap"></i> Organigrama</a>
 								<a class="dropdown-item" href="{{ url('usuarios/grupos') }}"><i class="fa fa-share-alt"></i> Grupos afines</a>
 								<a class="dropdown-item" href="{{ url('usuarios/registro') }}"><i class="fa fa-user"></i> Registro de usuarios</a>
-								<!--div class="dropdown-divider"></div-->
+								<div class="dropdown-divider"></div>
+								<a class="dropdown-item" href="{{ url('usuarios/mails/activacion') }}"><i class="fa fa-share"></i> Edición del correo de activación</a>
+								<a class="dropdown-item" href="{{ url('usuarios/mails/notificacion') }}"><i class="fa fa-envelope"></i> Edición del correo de notificación</a>
 					        </div>
 						</li>
 						<li class="nav-item dropdown {{ $menu == 2 ? 'active' : '' }}">

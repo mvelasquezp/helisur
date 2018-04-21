@@ -135,6 +135,34 @@ class Usuarios extends Controller {
         return view("usuarios.organigrama")->with($arrOpts);
     }
 
+    public function activacion() {
+        $usuario = Auth::user();
+        @mkdir(env("APP_FILES_PATH"), 0777, true);
+        $mailBody = new \stdClass();
+        $xml_path = implode(DIRECTORY_SEPARATOR, [env("APP_FILES_PATH"), "activacion.xml"]);
+        if(file_exists($xml_path)) {
+            $mailBody->saludo = "hey nigga";
+            $mailBody->cuerpo = "responde la encuesta prro >:'v";
+            $mailBody->enlace = "go puto!";
+        }
+        else {
+            $mailBody->saludo = "Bienvenido,";
+            $mailBody->cuerpo = "Has sido seleccionado para formar parte de la evaluación de competencias de Helisur.\nAntes de comenzar, necesitamos que verifiques tu cuenta de correo. Para ello, solo deberás hacer clic en el siguiente enlace:";
+            $mailBody->enlace = "Activar mi cuenta";
+        }
+        $arrOpts = [
+            "usuario" => $usuario,
+            "menu" => 1,
+            "email" => $mailBody
+        ];
+        return view("usuarios.mail_activacion")->with($arrOpts);
+    }
+
+    public function notificacion() {
+        $usuario = Auth::user();
+        //
+    }
+
     //peticiones ajax
 
     public function dt_oficina() {

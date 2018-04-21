@@ -56,7 +56,7 @@ class Mailer extends Controller {
                 ->where("upt.st_vigente", "S")
                 ->where("upt.id_usuario", $uid)
                 ->where("upt.id_puesto", $pid)
-                ->select("ent.des_nombre_3 as nombre", "ent.des_nombre_1 as apepat", "usr.id_usuario as id", "usr.des_email as mail")
+                ->select("ent.des_nombre_3 as nombre", "ent.des_nombre_1 as apepat", "usr.id_usuario as id", "usr.des_email as mail", "ent.cod_entidad as codigo")
                 ->first();
             $data = [
                 "usuario" => $usuario,
@@ -67,7 +67,10 @@ class Mailer extends Controller {
             DB::table("us_usuario")
                 ->where("id_usuario", $uid)
                 ->where("id_empresa", $user->id_empresa)
-                ->update([ "st_verifica_mail" => "P" ]);
+                ->update([
+                    "st_verifica_mail" => "P",
+                    "password" => \Hash::make($usuario->apepat[0] . $usuario->apepat[1] . $usuario->nombre[0] . $usuario->nombre[1] . $usuario->codigo)
+                ]);
             //envia el correo
             Mail::send("email.activacion", $data, function($message) use($usuario) {
                 $message->to($usuario->mail, $usuario->nombre . " " . $usuario->apepat)
@@ -95,14 +98,17 @@ class Mailer extends Controller {
             ->join("ma_entidad as ent", "usr.cod_entidad", "=", "ent.cod_entidad")
             ->where("upt.st_vigente", "S")
             ->where("usr.st_verifica_mail", "N")
-            ->select("ent.des_nombre_3 as nombre", "ent.des_nombre_1 as apepat", "usr.id_usuario as id", "usr.des_email as mail")
+            ->select("ent.des_nombre_3 as nombre", "ent.des_nombre_1 as apepat", "usr.id_usuario as id", "usr.des_email as mail", "ent.cod_entidad as codigo")
             ->take(10)
             ->get();
         foreach($usuarios as $idx => $usuario) {
             DB::table("us_usuario")
                 ->where("id_usuario", $usuario->id)
                 ->where("id_empresa", $user->id_empresa)
-                ->update([ "st_verifica_mail" => "P" ]);
+                ->update([
+                    "st_verifica_mail" => "P",
+                    "password" => \Hash::make($usuario->apepat[0] . $usuario->apepat[1] . $usuario->nombre[0] . $usuario->nombre[1] . $usuario->codigo)
+                ]);
             $data = [
                 "usuario" => $usuario,
                 "hash1" => $this->generateRandomString(32),
@@ -116,6 +122,49 @@ class Mailer extends Controller {
         }
         return Response::json([
             "success" => true
+        ]);
+    }
+
+    public function reset_password() {
+        extract(Request::input());
+        if(isset($uid, $pid)) {
+            $user = Auth::user();
+            $usuario = DB::table("us_usuario_puesto as upt")
+                ->join("us_usuario as usr", function($join_usr) {
+                    $join_usr->on("upt.id_empresa", "=", "usr.id_empresa")
+                        ->on("upt.id_usuario", "=", "usr.id_usuario");
+                })
+                ->join("ma_entidad as ent", "usr.cod_entidad", "=", "ent.cod_entidad")
+                ->where("upt.st_vigente", "S")
+                ->where("upt.id_usuario", $uid)
+                ->where("upt.id_puesto", $pid)
+                ->select("ent.des_nombre_3 as nombre", "des_nombre_1 as apepat", "usr.id_usuario as id", "usr.des_email as mail", "usr.des_alias as alias")
+                ->first();
+            $new_password = $this->generateRandomString(16);
+            $data = [
+                "usuario" => $usuario,
+                "password" => $new_password
+            ];
+            //actualiza la clave
+            DB::table("us_usuario")
+                ->where("id_usuario", $uid)
+                ->where("id_empresa", $user->id_empresa)
+                ->update([
+                    "password" => \Hash::make($new_password)
+                ]);
+            //envia el correo
+            Mail::send("email.reset_password", $data, function($message) use($usuario) {
+                $message->to($usuario->mail, $usuario->nombre . " " . $usuario->apepat)
+                    ->subject("Activacion de su cuenta de correo");
+                $message->from(env("MAIL_FROM"), env("MAIL_NAME"));
+            });
+            return Response::json([
+                "success" => true
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
         ]);
     }
 

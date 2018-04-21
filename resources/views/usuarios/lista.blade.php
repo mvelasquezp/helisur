@@ -9,6 +9,9 @@
 	    	.list-group-item small{font-size:0.7rem}
 	    	.no-wrap{white-space:nowrap !important}
 	    	.img-responsive{margin:10px;width:320px}
+	    	.dv-helper{display:none;position:absolute;box-shadow:2px 2px 10px #000000}
+	    	.th-helper{cursor:pointer}
+	    	.th-helper:hover>.dv-helper{display:block}
 		</style>
 	</head>
 	<body>
@@ -34,7 +37,15 @@
 								<th>Fch.Ingreso</th>
 								<th>Área</th>
 								<th>Cargo</th>
-								<th>Correo</th>
+								<th class="th-helper">
+									Correo <a href="#" class="text-light"><i class="fa fa-info-circle"></i></a>
+									<div class="alert alert-light dv-helper">
+										<p>Leyenda</p>
+										<p><span class="btn btn-success btn-xs">e-mail</span> Correo activado</p>
+										<p><span class="btn btn-warning btn-xs">e-mail</span> Correo notificado y no activo</p>
+										<p><span class="btn btn-danger btn-xs">e-mail</span> Correo no activado</p>
+									</div>
+								</th>
 								<th>Teléfono</th>
 								<th></th>
 							</tr>
@@ -83,9 +94,9 @@
 								</td>
 								<td>
 									@if(strcmp($empleado->vmail,'S') == 0)
-									<a href="javascript:void(0)" class="btn btn-success btn-xs">{{ $empleado->email }}</a>
+									<a href="#" class="btn btn-success btn-xs" title="Reiniciar contraseña" data-toggle="modal" data-target="#modal-reset" data-uid="{{ $empleado->id }}" data-pid="{{ $empleado->ptid }}" data-mail="{{ $empleado->email }}">{{ $empleado->email }}</a>
 									@elseif(strcmp($empleado->vmail,'P') == 0)
-									<a href="#" class="btn btn-info btn-xs" title="Enviar recordatorio" data-toggle="modal" data-target="#modal-activar" data-uid="{{ $empleado->id }}" data-pid="{{ $empleado->ptid }}" data-mail="{{ $empleado->email }}">{{ $empleado->email }}</a>
+									<a href="#" class="btn btn-warning btn-xs" title="Enviar recordatorio" data-toggle="modal" data-target="#modal-activar" data-uid="{{ $empleado->id }}" data-pid="{{ $empleado->ptid }}" data-mail="{{ $empleado->email }}">{{ $empleado->email }}</a>
 									@else
 									<a href="#" class="btn btn-danger btn-xs" title="Enviar recordatorio" data-toggle="modal" data-target="#modal-activar" data-uid="{{ $empleado->id }}" data-pid="{{ $empleado->ptid }}" data-mail="{{ $empleado->email }}">{{ $empleado->email }}</a>
 									@endif
@@ -230,7 +241,7 @@
 				</div>
 			</div>
 		</div>
-		<!-- Modal -->
+		<!-- modal correo activacion -->
 		<div class="modal fade" id="modal-activar" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
 			<div class="modal-dialog" role="document">
 				<div class="modal-content">
@@ -250,6 +261,32 @@
 								<hr>
 								<p class="text-secondary">Si lo desea, utilice la siguiente opción para enviar notificaciones a todas las cuentas de correo sin verificar.</p>
 								<p class="text-right"><a id="modal-activar-all" href="#" class="btn btn-primary btn-sm"><i class="fa fa-users"></i> Enviar correo de activación a todas las cuentas</a></p>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- modal reiniciar clave -->
+		<div class="modal fade" id="modal-reset" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="exampleModalLabel">Reinicio de contraseña</h5>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<input type="hidden" id="modal-reset-uid">
+						<input type="hidden" id="modal-reset-pid">
+						<div class="row">
+							<div class="col">
+								<p class="text-dark">Se enviará un mensaje de recuperación de contraseña a la cuenta de correo <b id="modal-reset-mail"></b>. Pulse el siguiente botón para hacerlo.</p>
+								<p class="text-right"><a id="modal-reset-password" href="#" class="btn btn-primary btn-sm"><i class="fa fa-envelope-o"></i> Enviar nueva clave</a></p>
 							</div>
 						</div>
 					</div>
@@ -389,6 +426,12 @@
 				document.getElementById("modal-activar-mail").innerHTML = data.mail;
 				document.getElementById("modal-activar-uid").value = data.uid;
 				document.getElementById("modal-activar-pid").value = data.pid;
+			});
+			$("#modal-reset").on("show.bs.modal", function(args) {
+				var data = args.relatedTarget.dataset;
+				document.getElementById("modal-reset-mail").innerHTML = data.mail;
+				document.getElementById("modal-reset-uid").value = data.uid;
+				document.getElementById("modal-reset-pid").value = data.pid;
 			});
 			$("modal-registro").on("hidden.bs.modal", function() {
 				document.getElementById("modal-registro-header").innerHTML = "Editando usuario";
@@ -584,6 +627,27 @@ console.log(err);
 						$("#modal-activar .modal-footer button").html("Ocurrió un error");
 					});
 				}
+			});
+			$("#modal-reset-password").on("click", function(evt) {
+				evt.preventDefault();
+				$("#modal-reset-password").hide();
+				var p = {
+					_token: "{{ csrf_token() }}",
+					uid: document.getElementById("modal-reset-uid").value,
+					pid: document.getElementById("modal-reset-pid").value
+				};
+				$.post("{{ url('mailer/reset-password') }}", p, function(response) {
+					if(response.success) {
+						alert("Se reinició la clave del usuario seleccionado y se le ha enviado un mensaje a su dirección de correo electrónico.");
+					}
+					else alert(response.msg);
+					$("#modal-reset-password").show();
+					$("#modal-reset").modal("hide");
+				}, "json").fail(function(err) {
+console.log(err);
+					alert(err.statusText);
+					$("#modal-reset-password").show();
+				});
 			});
 		</script>
 	</body>
