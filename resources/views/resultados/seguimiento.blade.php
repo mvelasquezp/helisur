@@ -6,6 +6,9 @@
 		<style type="text/css">
 			.no-margin>*{margin:2px 0}
 			.no-margin>.text-secondary{font-size:11px}
+			.form-control-xs{font-size:0.75rem;padding:.225rem .5rem}
+			.form-select-xs{font-size:0.75rem;height: auto !important;padding: .175rem .25rem}
+			.form-control-fit{width:100% !important}
 		</style>
 	</head>
 	<body>
@@ -29,11 +32,21 @@
 					<table class="table table-striped">
 						<thead>
 							<tr>
-								<th>Evaluador</th>
-								<th>Evaluado</th>
-								<th>Estado</th>
-								<th>Progreso</th>
-								<th>Fe.Inicio</th>
+								<th><input type="text" id="bt-filtro-evaluador" placeholder="Evaluador" class="form-control form-control-xs form-input-filter"></th>
+								<th><input type="text" id="bt-filtro-evaluado" placeholder="Evaluado" class="form-control form-control-xs form-input-filter"></th>
+								<th>
+									<select id="sl-filtro-estado" class="form-control form-select-xs">
+										<option value="0" selected>Estado: Todos</option>
+										<option value="Creada">Creada</option>
+										<option value="Programado">Programado</option>
+										<option value="Pendiente">Pendiente</option>
+										<option value="En curso">En curso</option>
+										<option value="Valorando">Valorando</option>
+										<option value="Finalizada">Finalizada</option>
+									</select>
+								</th>
+								<th><input type="text" id="bt-filtro-progreso" class="form-control form-control-xs form-control-fit form-input-filter" placeholder="Progreso"></th>
+								<th><input type="text" id="bt-filtro-fecha" class="form-control form-control-xs form-control-fit form-input-filter" placeholder="Fecha"></th>
 								<th>Ult.Acceso</th>
 								<th></th>
 							</tr>
@@ -115,8 +128,73 @@
 		<!-- JS -->
 		@include("common.scripts")
 		<script type="text/javascript">
+			var datos;
 			document.getElementById("if-encuesta").value = "";
 			document.getElementById("if-eid").value = "";
+			//
+			function PopulateTbody() {
+				var qEva = document.getElementById("bt-filtro-evaluador").value;
+				var qEvo = document.getElementById("bt-filtro-evaluado").value;
+				var qEstado = document.getElementById("sl-filtro-estado").value;
+				var qProg = document.getElementById("bt-filtro-progreso").value;
+				var qFch = document.getElementById("bt-filtro-fecha").value;
+				$("#main-tbody").empty();
+				for(var i in datos) {
+					var fila = datos[i];
+					qEva = qEva.toUpperCase();
+					qEvo = qEvo.toUpperCase();
+					if((qEva == "" || fila.evaluador.toUpperCase().indexOf(qEva) > -1) && (qEvo == "" || fila.evaluado.toUpperCase().indexOf(qEvo) > -1) && (qEstado == "0" || qEstado == fila.estado) && (qProg == "" || qProg == fila.progreso) && (qFch == "" || qFch == fila.inicio)) {
+						var iProgreso = "";
+						switch(fila.estado) {
+							case "En curso":
+							case "Programado":
+							case "Pendiente": iProgreso = fila.progreso + " / " + fila.preguntas; break;
+							case "Valorando": iProgreso = "Valorando"; break;
+							default: iProgreso = "Terminada"; break;
+						}
+						$("#main-tbody").append(
+							$("<tr/>").append(
+								$("<td/>").addClass("no-margin").append(
+									$("<p/>").addClass("text-dark").html(fila.evaluador)
+								).append(
+									$("<p/>").addClass("text-secondary").html(fila.apuesto + " - " + fila.aoficina)
+								)
+							).append(
+								$("<td/>").addClass("no-margin").append(
+									$("<p/>").addClass("text-dark").html(fila.evaluado)
+								).append(
+									$("<p/>").addClass("text-secondary").html(fila.opuesto + " - " + fila.ooficina)
+								)
+							).append(
+								//$("<td/>").html(fila.estado)
+								$("<td/>").append(
+									$("<a/>").addClass("btn btn-xs text-light " + (fila.estado == "Finalizada" ? "btn-success" : (fila.estado == "Programado" ? "btn-danger" : (fila.estado == "Pendiente" ? "btn-warning" : "btn-info")))).html(fila.estado)
+								)
+							).append(
+								$("<td/>").addClass("text-center").html(iProgreso)
+							).append(
+								$("<td/>").html(fila.inicio)
+							).append(
+								$("<td/>").html(fila.ultimo)
+							).append(
+								$("<td/>").append(
+									$("<a/>").addClass("btn btn-xs btn-warning text-dark").append(
+										$("<i/>").addClass("fa fa-envelope-o")
+									).append(" Seguimiento").attr({
+										"href": "#",
+										"data-toggle": "modal",
+										"data-target": "#modal-seguimiento",
+										"data-nom": fila.evaluador,
+										"data-eid": fila.eid,
+										"data-eva": fila.eva,
+										"data-peva": fila.peva
+									})
+								)
+							)
+						);
+					}
+				}
+			}
 			function CargarDatosEncuesta(event) {
 				event.preventDefault();
 				var a = $(this);
@@ -129,58 +207,8 @@
 				};
 				$.post("{{ url('encuestas/ajax/dt-progreso-encuesta') }}", p, function(response) {
 					if(response.success) {
-						var datos = response.data.lista;
-						for(var i in datos) {
-							var fila = datos[i];
-							var iProgreso = "";
-							switch(fila.estado) {
-								case "En curso":
-								case "Programado":
-								case "Pendiente": iProgreso = fila.progreso + " / " + fila.preguntas; break;
-								case "Valorando": iProgreso = "Valorando"; break;
-								default: iProgreso = "Terminada"; break;
-							}
-							$("#main-tbody").append(
-								$("<tr/>").append(
-									$("<td/>").addClass("no-margin").append(
-										$("<p/>").addClass("text-dark").html(fila.evaluador)
-									).append(
-										$("<p/>").addClass("text-secondary").html(fila.apuesto + " - " + fila.aoficina)
-									)
-								).append(
-									$("<td/>").addClass("no-margin").append(
-										$("<p/>").addClass("text-dark").html(fila.evaluado)
-									).append(
-										$("<p/>").addClass("text-secondary").html(fila.opuesto + " - " + fila.ooficina)
-									)
-								).append(
-									//$("<td/>").html(fila.estado)
-									$("<td/>").append(
-										$("<a/>").addClass("btn btn-xs text-light " + (fila.estado == "En curso" ? "btn-success" : (fila.estado == "Programado" ? "btn-danger" : (fila.estado == "Pendiente" ? "btn-warning" : "btn-info")))).html(fila.estado)
-									)
-								).append(
-									$("<td/>").addClass("text-center").html(iProgreso)
-								).append(
-									$("<td/>").html(fila.inicio)
-								).append(
-									$("<td/>").html(fila.ultimo)
-								).append(
-									$("<td/>").append(
-										$("<a/>").addClass("btn btn-xs btn-warning text-dark").append(
-											$("<i/>").addClass("fa fa-envelope-o")
-										).append(" Seguimiento").attr({
-											"href": "#",
-											"data-toggle": "modal",
-											"data-target": "#modal-seguimiento",
-											"data-nom": fila.evaluador,
-											"data-eid": fila.eid,
-											"data-eva": fila.eva,
-											"data-peva": fila.peva
-										})
-									)
-								)
-							);
-						}
+						datos = response.data.lista;
+						PopulateTbody();
 						$("#modal-encuestas").modal("hide");
 					}
 					else alert(response.msg);
@@ -288,6 +316,9 @@
 					}, "json");
 				}
 			});
+			$(".form-input-filter").val("");
+			$(".form-input-filter").on("keyup", PopulateTbody);
+			$(".form-select-xs").on("change", PopulateTbody)
 		</script>
 	</body>
 </html>

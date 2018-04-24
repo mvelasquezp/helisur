@@ -267,8 +267,24 @@ class Resultados extends Controller {
                 ->select("ent.des_nombre_3 as nombre", "ent.des_nombre_1 as apepat", "usr.id_usuario as id", "usr.des_email as mail")
                 ->where("usr.id_usuario", $eva)
                 ->first();
+            //lee la plantilla del mensaje
+            $xml_path = implode(DIRECTORY_SEPARATOR, [env("APP_FILES_PATH"), "notificacion.xml"]);
+            $mailBody = new \stdClass();
+            if(file_exists($xml_path)) {
+                $xml = simplexml_load_file($xml_path);
+                $mailBody->saludo = (string) $xml->message->saludo;
+                $mailBody->mensaje = (string) $xml->message->mensaje;
+                $mailBody->enlace = (string) $xml->message->enlace;
+            }
+            else {
+                $mailBody->saludo = "Bienvenido,";
+                $mailBody->mensaje = "Has sido seleccionado para formar parte de la evaluación de competencias de Helisur.\nAntes de comenzar, necesitamos que verifiques tu cuenta de correo. Para ello, solo deberás hacer clic en el siguiente enlace:";
+                $mailBody->enlace = "Activar mi cuenta";
+            }
+            //go go power rangers
             $data = [
-                "usuario" => $evaluador
+                "usuario" => $evaluador,
+                "mailbody" => $mailBody
             ];
             \Mail::send("email.recordatorio_encuesta", $data, function($message) use($evaluador) {
                 $message->to($evaluador->mail, $evaluador->nombre . " " . $evaluador->apepat)

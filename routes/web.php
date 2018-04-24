@@ -71,6 +71,9 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 			Route::post("retirar-grupo", "Usuarios@retirar_grupo");
 			Route::post("retirar-oficina", "Usuarios@retirar_oficina");
 			Route::post("eliminar-oficina", "Usuarios@eliminar_oficina");
+			//mails
+			Route::post("actualiza-correo-activacion", "Usuarios@actualiza_correo_activacion");
+			Route::post("actualiza-correo-notificacion", "Usuarios@actualiza_correo_notificacion");
 		});
 		Route::prefix("mails")->group(function() {
 			Route::get("activacion", "Usuarios@activacion");
@@ -94,6 +97,7 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 			Route::post("del-concepto", "Preguntas@del_concepto");
 			Route::post("del-categoria", "Preguntas@del_categoria");
 			Route::post("del-subcategoria", "Preguntas@del_subcategoria");
+			Route::post("del-pregunta", "Preguntas@del_pregunta");
 		});
 	});
 	//modulo de encuestas

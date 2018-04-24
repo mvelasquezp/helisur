@@ -137,13 +137,14 @@ class Usuarios extends Controller {
 
     public function activacion() {
         $usuario = Auth::user();
-        @mkdir(env("APP_FILES_PATH"), 0777, true);
+        @mkdir(env("APP_FILES_PATH"), 0774, true);
         $mailBody = new \stdClass();
         $xml_path = implode(DIRECTORY_SEPARATOR, [env("APP_FILES_PATH"), "activacion.xml"]);
         if(file_exists($xml_path)) {
-            $mailBody->saludo = "hey nigga";
-            $mailBody->cuerpo = "responde la encuesta prro >:'v";
-            $mailBody->enlace = "go puto!";
+            $xml = simplexml_load_file($xml_path);
+            $mailBody->saludo = (string) $xml->message->saludo;
+            $mailBody->cuerpo = (string) $xml->message->mensaje;
+            $mailBody->enlace = (string) $xml->message->enlace;
         }
         else {
             $mailBody->saludo = "Bienvenido,";
@@ -160,7 +161,27 @@ class Usuarios extends Controller {
 
     public function notificacion() {
         $usuario = Auth::user();
-        //
+        $usuario = Auth::user();
+        @mkdir(env("APP_FILES_PATH"), 0774, true);
+        $mailBody = new \stdClass();
+        $xml_path = implode(DIRECTORY_SEPARATOR, [env("APP_FILES_PATH"), "notificacion.xml"]);
+        if(file_exists($xml_path)) {
+            $xml = simplexml_load_file($xml_path);
+            $mailBody->saludo = (string) $xml->message->saludo;
+            $mailBody->cuerpo = (string) $xml->message->mensaje;
+            $mailBody->enlace = (string) $xml->message->enlace;
+        }
+        else {
+            $mailBody->saludo = "Estimado(a)";
+            $mailBody->cuerpo = "Al parecer, tienes evaluaciones pendientes por responder. Recuerda que tu participación es de suma importancia para conocer más acerca del desempeño de nuestros colaboradores.\nPara terminar de evaluar, ingresa al portal de gestión de competencias, o haz clic en el siguiente enlace:";
+            $mailBody->enlace = "Ingresar al sistema de evaluación de competencias";
+        }
+        $arrOpts = [
+            "usuario" => $usuario,
+            "menu" => 1,
+            "email" => $mailBody
+        ];
+        return view("usuarios.mail_notificacion")->with($arrOpts);
     }
 
     //peticiones ajax
@@ -741,12 +762,52 @@ class Usuarios extends Controller {
                 ]);
             return Response::json([
                 "success" => true
-        ]);
+            ]);
         }
         return Response::json([
             "success" => false,
             "msg" => "Debe seleccionar una imagen para subir"
         ]);
+    }
+
+    public function actualiza_correo_activacion() {
+        extract(Request::input());
+        if(isset($sld, $msj, $nlc)) {
+            $path = env("APP_FILES_PATH");
+            @mkdir($path, 0774, true);
+            $file = $path . DIRECTORY_SEPARATOR . "activacion.xml";
+            if(file_exists($file)) unlink($file);
+            $xml_content = view("xml.mail_activacion")->with(["saludo" => $sld, "mensaje" => $msj, "enlace" => $nlc]);
+            file_put_contents($file, $xml_content);
+            return Response::json([
+                "success" => true
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+        
+    }
+
+    public function actualiza_correo_notificacion() {
+        extract(Request::input());
+        if(isset($sld, $msj, $nlc)) {
+            $path = env("APP_FILES_PATH");
+            @mkdir($path, 0774, true);
+            $file = $path . DIRECTORY_SEPARATOR . "notificacion.xml";
+            if(file_exists($file)) unlink($file);
+            $xml_content = view("xml.mail_notificacion")->with(["saludo" => $sld, "mensaje" => $msj, "enlace" => $nlc]);
+            file_put_contents($file, $xml_content);
+            return Response::json([
+                "success" => true
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+        
     }
 
 }

@@ -34,7 +34,7 @@
 								<td>{{ $pregunta->categoria }}</td>
 								<td>{{ $pregunta->subcategoria }}</td>
 								<td>{{ $pregunta->texto }}</td>
-								<td><a href="#" class="btn btn-danger btn-xs"><i class="fa fa-remove"></i> Retirar</a></td>
+								<td><a href="#" class="btn btn-danger btn-xs btn-retira" data-id="{{ $pregunta->id }}"><i class="fa fa-remove"></i> Retirar</a></td>
 							</tr>
 							@endforeach
 							<tr>
@@ -118,6 +118,19 @@
 					}
 					else alert(response.msg);
 				}, "json");
+			});
+			$(".btn-retira").on("click", function(event) {
+				event.preventDefault();
+				if(window.confirm("¿Retirar la pregunta seleccionada?")) {
+					var p = {
+						_token: "{{ csrf_token() }}",
+						pid: $(this).data("id")
+					};
+					$.post("{{ url('preguntas/ajax/del-pregunta') }}", p, function(response) {
+						if(response.success) location.reload();
+						else alert(response.msg);
+					}, "json");
+				}
 			});
 		</script>
 	</body>

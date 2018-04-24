@@ -441,7 +441,7 @@ class Encuestas extends Controller {
             foreach ($arr as $idx => $row) {
                 $vRow = explode("|", $row);
                 //par.eva + "|" + par.pta + "|" + par.evo + "|" + par.pto
-                if(!isset($arr_auto[$vRow[2]])) $arr_auto[$vRow[2]] = $vRow[3];
+                if(!isset($arr_auto[$vRow[0]])) $arr_auto[$vRow[0]] = $vRow[1];
                 $arr_insert[] = [
                     "id_encuesta" => $eid,
                     "id_empresa" => $usuario->id_empresa,

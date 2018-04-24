@@ -92,7 +92,7 @@
 					msj: document.getElementById("tb-mensaje").value,
 					nlc: document.getElementById("tb-enlace").value
 				};
-				$.post("{{ url('usuarios/ajax/actualiza-correo-activacion') }}", p, function(response) {
+				$.post("{{ url('usuarios/ajax/actualiza-correo-notificacion') }}", p, function(response) {
 					if(response.success) location.reload();
 					else alert(response.msg);
 				}, "json");

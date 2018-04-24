@@ -292,4 +292,20 @@ class Preguntas extends Controller {
         ]);
     }
 
+    public function del_pregunta() {
+        extract(Request::input());
+        if(isset($pid)) {
+            DB::table("ma_pregunta")
+                ->where("id_pregunta", $pid)
+                ->update([ "st_vigente" => "N" ]);
+            return Response::json([
+                "success" => true
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+    }
+
 }

@@ -4,11 +4,10 @@
 			<img src="{{ asset('images/helisur-logo-big.png') }}" style="width:128px;">
 		</td>
 		<td style="padding:10px;">
-			<h1 style="font-family:Verdana;color:#0d47a1;">Bienvenido, {{ $usuario->nombre }}</h1>
+			<h1 style="font-family:Verdana;color:#0d47a1;">{{ $mailbody->saludo }} {{ $usuario->nombre }}</h1>
 			<hr>
-			<p style="font-family:Verdana;color:#808080;">Has sido seleccionado para formar parte de la evaluación de competencias de Helisur.</p>
-			<p style="font-family:Verdana;color:#808080;">Antes de comenzar, necesitamos que verifiques tu cuenta de correo. Para ello, solo deberás hacer clic en el siguiente enlace:</p>
-			<p style="font-family:Verdana;text-align:right;"><a href="{{ url('verificar', [$hash1, $usuario->id . '_' . $hash2]) }}">Activar mi cuenta</a></p>
+			<p style="font-family:Verdana;color:#808080;">{!! str_replace("\n","<br>",$mailbody->mensaje) !!}</p>
+			<p style="font-family:Verdana;text-align:right;"><a href="{{ url('verificar', [$hash1, $usuario->id . '_' . $hash2]) }}">{{ $mailbody->enlace }}</a></p>
 		</td>
 	</tr>
 </table>

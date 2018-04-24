@@ -58,10 +58,25 @@ class Mailer extends Controller {
                 ->where("upt.id_puesto", $pid)
                 ->select("ent.des_nombre_3 as nombre", "ent.des_nombre_1 as apepat", "usr.id_usuario as id", "usr.des_email as mail", "ent.cod_entidad as codigo")
                 ->first();
+            //lee la plantilla del mensaje
+            $xml_path = implode(DIRECTORY_SEPARATOR, [env("APP_FILES_PATH"), "activacion.xml"]);
+            $mailBody = new \stdClass();
+            if(file_exists($xml_path)) {
+                $xml = simplexml_load_file($xml_path);
+                $mailBody->saludo = (string) $xml->message->saludo;
+                $mailBody->mensaje = (string) $xml->message->mensaje;
+                $mailBody->enlace = (string) $xml->message->enlace;
+            }
+            else {
+                $mailBody->saludo = "Bienvenido,";
+                $mailBody->mensaje = "Has sido seleccionado para formar parte de la evaluación de competencias de Helisur.\nAntes de comenzar, necesitamos que verifiques tu cuenta de correo. Para ello, solo deberás hacer clic en el siguiente enlace:";
+                $mailBody->enlace = "Activar mi cuenta";
+            }
             $data = [
                 "usuario" => $usuario,
                 "hash1" => $user->id_empresa . "_" . $this->generateRandomString(32),
-                "hash2" => $this->generateRandomString(32)
+                "hash2" => $this->generateRandomString(32),
+                "mailbody" => $mailBody
             ];
             //actualiza el flag del usuario
             DB::table("us_usuario")
@@ -101,6 +116,20 @@ class Mailer extends Controller {
             ->select("ent.des_nombre_3 as nombre", "ent.des_nombre_1 as apepat", "usr.id_usuario as id", "usr.des_email as mail", "ent.cod_entidad as codigo")
             ->take(10)
             ->get();
+        //lee la plantilla del mensaje
+        $xml_path = implode(DIRECTORY_SEPARATOR, [env("APP_FILES_PATH"), "activacion.xml"]);
+        $mailBody = new \stdClass();
+        if(file_exists($xml_path)) {
+            $xml = simplexml_load_file($xml_path);
+            $mailBody->saludo = (string) $xml->message->saludo;
+            $mailBody->mensaje = (string) $xml->message->mensaje;
+            $mailBody->enlace = (string) $xml->message->enlace;
+        }
+        else {
+            $mailBody->saludo = "Bienvenido,";
+            $mailBody->mensaje = "Has sido seleccionado para formar parte de la evaluación de competencias de Helisur.\nAntes de comenzar, necesitamos que verifiques tu cuenta de correo. Para ello, solo deberás hacer clic en el siguiente enlace:";
+            $mailBody->enlace = "Activar mi cuenta";
+        }
         foreach($usuarios as $idx => $usuario) {
             DB::table("us_usuario")
                 ->where("id_usuario", $usuario->id)
@@ -112,7 +141,8 @@ class Mailer extends Controller {
             $data = [
                 "usuario" => $usuario,
                 "hash1" => $this->generateRandomString(32),
-                "hash2" => $this->generateRandomString(32)
+                "hash2" => $this->generateRandomString(32),
+                "mailbody" => $mailBody
             ];
             Mail::send("email.activacion", $data, function($message) use($usuario) {
                 $message->to($usuario->mail, $usuario->nombre . " " . $usuario->apepat)

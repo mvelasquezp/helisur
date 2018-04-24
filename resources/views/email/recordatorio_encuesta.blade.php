@@ -4,11 +4,10 @@
 			<img src="{{ asset('images/helisur-logo-big.png') }}" style="width:128px;">
 		</td>
 		<td style="padding:10px;">
-			<h1 style="font-family:Verdana;color:#0d47a1;">Estimado(a) {{ $usuario->nombre }}</h1>
+			<h1 style="font-family:Verdana;color:#0d47a1;">{{ $mailbody->saludo }} {{ $usuario->nombre }}</h1>
 			<hr>
-			<p style="font-family:Verdana;color:#808080;">Al parecer, tienes evaluaciones pendientes por responder. Recuerda que tu participación es de suma importancia para conocer más acerca del desempeño de nuestros colaboradores.</p>
-			<p style="font-family:Verdana;color:#808080;">Para terminar de evaluar, ingresa al portal de gestión de competencias, o haz clic en el siguiente enlace:</p>
-			<p style="font-family:Verdana;text-align:right;"><a href="{{ url('/') }}">Ingresar al sistema de evaluación de competencias</a></p>
+			<p style="font-family:Verdana;color:#808080;">{!! str_replace("\n","<br>",$mailbody->mensaje) !!}</p>
+			<p style="font-family:Verdana;text-align:right;"><a href="{{ url('/') }}">{{ $mailbody->enlace }}</a></p>
 			<p><br></p>
 			<p style="font-family:Verdana;color:#808080;">Que tengas buen día!</p>
 		</td>

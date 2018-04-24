@@ -62,7 +62,7 @@
 							<a class="nav-link dropdown-toggle" href="#" id="serviciosDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-list-ul"></i> Encuestas</a>
 							<div class="dropdown-menu" aria-labelledby="serviciosDropdown">
 								<a class="dropdown-item" href="{{ url('encuestas/programacion') }}"><i class="fa fa-clock-o"></i> Programación de encuestas</a>
-								<a class="dropdown-item" href="{{ url('encuestas/lanzamiento') }}"><i class="fa fa-reply-all"></i> Lanzamiento de encuestas</a>
+								<a class="dropdown-item" href="{{ url('encuestas/lanzamiento') }}"><i class="fa fa-reply-all"></i> Preparación de encuestas</a>
 								<!--a class="dropdown-item" href="{{ url('encuestas/informe') }}"><i class="fa fa-tasks"></i> Informe de encuestas</a>
 								<a class="dropdown-item" href="{{ url('encuestas/anteriores') }}"><i class="fa fa-history"></i> Encuestas anteriores</a-->
 								<!--div class="dropdown-divider"></div-->

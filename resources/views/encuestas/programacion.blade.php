@@ -367,6 +367,8 @@
 								var fila = dprogramacion[i];
 								tbody.append(
 									$("<tr/>").append(
+										$("<td/>").html(parseInt(i) + 1)
+									).append(
 										$("<td/>").addClass("no-margin").append(
 											$("<p/>").addClass("text-dark").html(fila.neva)
 										).append(
@@ -385,6 +387,8 @@
 								$("<table/>").addClass("table").append(
 									$("<thead/>").append(
 										$("<tr/>").append(
+											$("<th/>").html("#")
+										).append(
 											$("<th/>").html("Evaluador")
 										).append(
 											$("<th/>").html("Evaluado")
@@ -465,26 +469,14 @@
 								$("#modal-revisar-table-cuestionario").append(
 									$("<tr/>").data("id",pregunta.id).data("txt",pregunta.texto).append(
 										$("<td/>").html(pregunta.texto)
-									)/*.append(
-										$("<td/>").append(
-											$("<a/>").attr("href","#").addClass("btn btn-danger btn-xs").append(
-												$("<i/>").addClass("fa fa-remove")
-											).on("click",RetirarPregunta)
-										)
-									)*/
+									)
 								);
 							}
 							else {
 								$("#modal-revisar-table-todo").append(
 									$("<tr/>").data("id",pregunta.id).data("txt",pregunta.texto).append(
 										$("<td/>").html(pregunta.texto)
-									)/*.append(
-										$("<td/>").append(
-											$("<a/>").attr("href","#").addClass("btn btn-success btn-xs").append(
-												$("<i/>").addClass("fa fa-plus")
-											).on("click", AgregarPregunta)
-										)
-									)*/
+									)
 								);
 							}
 						}
@@ -495,6 +487,8 @@
 								var fila = dprogramacion[i];
 								tbody.append(
 									$("<tr/>").append(
+										$("<td/>").html(parseInt(i) + 1)
+									).append(
 										$("<td/>").addClass("no-margin").append(
 											$("<p/>").addClass("text-dark").html(fila.neva)
 										).append(
@@ -513,6 +507,8 @@
 								$("<table/>").addClass("table").append(
 									$("<thead/>").append(
 										$("<tr/>").append(
+											$("<th/>").html("#")
+										).append(
 											$("<th/>").html("Evaluador")
 										).append(
 											$("<th/>").html("Evaluado")
