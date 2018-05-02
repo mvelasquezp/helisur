@@ -10,7 +10,7 @@
 						<h3>{{ $usuario->des_alias }} <a id="caret-menu" href="#"><i class="fa fa-caret-down"></i></a></h3>
 						<div class="profile-menu">
 							<div class="list-group">
-								<a href="#" class="list-group-item list-group-item-secondary"><i class="fa fa-user"></i> Ver perfil</a>
+								<a href="{{ url('/') }}" class="list-group-item list-group-item-secondary"><i class="fa fa-user"></i> Ver perfil</a>
 								<a href="{{ url('login/logout') }}" class="list-group-item list-group-item-secondary"><i class="fa fa-sign-out"></i> Cerrar sesión</a>
 							</div>
 						</div>
@@ -29,8 +29,8 @@
 						<li class="nav-item dropdown d-md-block d-lg-none">
 							<a class="nav-link dropdown-toggle" href="#" id="serviciosDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-user"></i> {{ $usuario->v_Nombres }} {{ $usuario->v_Apellidos }}</a>
 							<div class="dropdown-menu" aria-labelledby="serviciosDropdown">
-								<a class="dropdown-item" href="{{ url('servicios/distribucion') }}"><i class="fa fa-user-o"></i> Ver perfil</a>
-								<a class="dropdown-item" href="{{ url('servicios/almacenes') }}"><i class="fa fa-sign-out"></i> Cerrar sesión</a>
+								<a class="dropdown-item" href="{{ url('/') }}"><i class="fa fa-user-o"></i> Ver perfil</a>
+								<a class="dropdown-item" href="{{ url('login/logout') }}"><i class="fa fa-sign-out"></i> Cerrar sesión</a>
 								<!--div class="dropdown-divider"></div-->
 					        </div>
 						</li>

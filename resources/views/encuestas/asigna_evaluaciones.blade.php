@@ -13,6 +13,9 @@
 			.page-title{margin:0}
 			.no-margin>*{margin:2px 0}
 			.no-margin>.text-secondary{font-size:11px}
+			.tr-header{background-color:#f2f2f2;cursor:pointer}
+			.tr-header>td{vertical-align:middle}
+			.tr-hide{display:none}
 		</style>
 	</head>
 	<body>
@@ -41,26 +44,41 @@
 			</div>
 			<div class="row">
 				<div class="col">
-					<table class="table table-striped">
+					<table class="table">
 						<thead>
 							<tr>
-								<th colspan="3" class="text-center">
+								<th colspan="4" class="text-center">
 									<h5 class="text-primary">Usuarios programados para la encuesta: {{ $encuesta->nombre }}</h5>
 								</th>
 							</tr>
 							<tr>
-								<th>Evaluador</th>
-								<th>Evaluado</th>
-								<th></th>
+								<th width="1%"></th>
+								<th width="45%">Evaluador</th>
+								<th width="45%">Evaluado</th>
+								<th width="9%"></th>
 							</tr>
 						</thead>
 						<tbody>
-							@foreach($programacion as $idx => $fila)
-							<tr>
+						@foreach($programacion as $idx => $fila)
+						@if($idx == 0)
+							<?php
+							$curr = $fila->auid;
+							$next = 1;
+							?>
+							<tr class="tr-header" data-cod="{{ $fila->auid }}">
+								<td>
+									<a class="btn btn-xs btn-primary text-light">1</a>
+								</td>
 								<td class="no-margin">
 									<p class="text-dark">{{ $fila->neva }}</p>
 									<p class="text-secondary">{{ $fila->peva }} | {{ $fila->oeva }}</p>
 								</td>
+								<td class="no-margin text-right"><p class="text-dark" style="font-weight:bold"></p></td>
+								<td></td>
+							</tr>
+							<tr class="tr-hide tr-{{ $curr }}">
+								<td></td>
+								<td></td>
 								<td class="no-margin">
 									<p class="text-dark">{{ $fila->nevo }}</p>
 									<p class="text-secondary">{{ $fila->pevo }} | {{ $fila->oevo }}</p>
@@ -75,7 +93,61 @@
 									@endif
 								</td>
 							</tr>
-							@endforeach
+						@else
+							@if($curr == $fila->auid)
+							<tr class="tr-hide tr-{{ $curr }}">
+								<td></td>
+								<td></td>
+								<td class="no-margin">
+									<p class="text-dark">{{ $fila->nevo }}</p>
+									<p class="text-secondary">{{ $fila->pevo }} | {{ $fila->oevo }}</p>
+								</td>
+								<td>
+									@if(strcmp($fila->estado,"Programado") == 0)
+									<a href="#" class="btn btn-danger btn-xs btn-retira" data-eva="{{ $fila->auid }}" data-peva="{{ $fila->apid }}" data-evo="{{ $fila->ouid }}" data-pevo="{{ $fila->opid }}" data-enc="{{ $encuesta->id }}" data-nom="{{ $encuesta->nombre }}"><i class="fa fa-remove"></i> Retirar</a>
+									@elseif(strcmp($fila->estado,"Finalizada") == 0)
+									<a href="#" class="btn btn-success btn-xs"><i class="fa fa-check"></i> Terminada</a>
+									@else
+									<a href="#" class="btn btn-primary btn-xs" data-eva="{{ $fila->auid }}" data-peva="{{ $fila->apid }}" data-evo="{{ $fila->ouid }}" data-pevo="{{ $fila->opid }}" data-enc="{{ $encuesta->id }}" data-nom="{{ $encuesta->nombre }}"><i class="fa fa-refresh"></i> Ingresar</a>
+									@endif
+								</td>
+							</tr>
+							@else
+							<?php
+							$curr = $fila->auid;
+							$next++;
+							?>
+							<tr class="tr-header" data-cod="{{ $fila->auid }}">
+								<td>
+									<a class="btn btn-xs btn-primary text-light">{{ $next }}</a>
+								</td>
+								<td class="no-margin">
+									<p class="text-dark">{{ $fila->neva }}</p>
+									<p class="text-secondary">{{ $fila->peva }} | {{ $fila->oeva }}</p>
+								</td>
+								<td class="no-margin text-right"><p class="text-dark" style="font-weight:bold"></p></td>
+								<td></td>
+							</tr>
+							<tr class="tr-hide tr-{{ $curr }}">
+								<td></td>
+								<td></td>
+								<td class="no-margin">
+									<p class="text-dark">{{ $fila->nevo }}</p>
+									<p class="text-secondary">{{ $fila->pevo }} | {{ $fila->oevo }}</p>
+								</td>
+								<td>
+									@if(strcmp($fila->estado,"Programado") == 0)
+									<a href="#" class="btn btn-danger btn-xs btn-retira" data-eva="{{ $fila->auid }}" data-peva="{{ $fila->apid }}" data-evo="{{ $fila->ouid }}" data-pevo="{{ $fila->opid }}" data-enc="{{ $encuesta->id }}" data-nom="{{ $encuesta->nombre }}"><i class="fa fa-remove"></i> Retirar</a>
+									@elseif(strcmp($fila->estado,"Finalizada") == 0)
+									<a href="#" class="btn btn-success btn-xs"><i class="fa fa-check"></i> Terminada</a>
+									@else
+									<a href="#" class="btn btn-primary btn-xs" data-eva="{{ $fila->auid }}" data-peva="{{ $fila->apid }}" data-evo="{{ $fila->ouid }}" data-pevo="{{ $fila->opid }}" data-enc="{{ $encuesta->id }}" data-nom="{{ $encuesta->nombre }}"><i class="fa fa-refresh"></i> Ingresar</a>
+									@endif
+								</td>
+							</tr>
+							@endif
+						@endif
+						@endforeach
 						</tbody>
 					</table>
 				</div>
@@ -432,6 +504,16 @@
 			});
 			$("#modal-usuario").on("shown.bs.modal", function(evt) {
 				document.getElementById("mod-keyword").focus();
+			});
+			$(".tr-header").on("click", function(event) {
+				var tr = $(this);
+				var clase = ".tr-" + tr.data("cod");
+				$(clase).toggle();
+			});
+			$.each($(".tr-header"), function() {
+				var tr = $(this);
+				var clase = ".tr-" + tr.data("cod");
+				tr.children("td").eq(2).children("p").html($(clase).length + " evaluado(s)")
 			});
 			function toggleRow(event) {
 				event.preventDefault();

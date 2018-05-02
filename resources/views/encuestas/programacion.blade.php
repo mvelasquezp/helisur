@@ -7,6 +7,8 @@
 		<style type="text/css">
 			.no-margin>*{margin:2px 0}
 			.no-margin>.text-secondary{font-size:11px}
+			.tr-header{background-color:#f2f2f2;cursor:pointer}
+			.tr-hide{display:none}
 		</style>
 	</head>
 	<body>
@@ -362,40 +364,141 @@
 						}
 						//programacion
 						if(dprogramacion.length > 0) {
-							var tbody = $("<tbody/>")
+							var tbody = $("<tbody/>");
+							var curr = -1;
+							var next = 1;
 							for(var i in dprogramacion) {
 								var fila = dprogramacion[i];
-								tbody.append(
-									$("<tr/>").append(
-										$("<td/>").html(parseInt(i) + 1)
-									).append(
-										$("<td/>").addClass("no-margin").append(
-											$("<p/>").addClass("text-dark").html(fila.neva)
+								if(i == 0) {
+									curr = fila.auid;
+									tbody.append(
+										$("<tr/>").addClass("tr-header").attr("data-cod", fila.auid).append(
+											$("<td/>").html(next)
 										).append(
-											$("<p/>").addClass("text-secondary").html(fila.peva + " | " + fila.oeva)
-										)
-									).append(
-										$("<td/>").addClass("no-margin").append(
-											$("<p/>").addClass("text-dark").html(fila.nevo)
+											$("<td/>").addClass("no-margin").append(
+												$("<p/>").addClass("text-dark").html(fila.neva)
+											).append(
+												$("<p/>").addClass("text-secondary").html(fila.peva + " | " + fila.oeva)
+											)
 										).append(
-											$("<p/>").addClass("text-secondary").html(fila.pevo + " | " + fila.oevo)
+											$("<td/>").html("")
+										).on("click", function() {
+											var tr = $(this);
+											var clase = ".tr-" + tr.data("cod");
+											$(clase).toggle();
+										})
+									).append(
+										$("<tr/>").addClass("tr-hide tr-" + curr).append(
+											$("<td/>").html("")
+										).append(
+											$("<td/>").html("")
+										).append(
+											$("<td/>").addClass("no-margin").append(
+												$("<p/>").addClass("text-dark").html(fila.nevo)
+											).append(
+												$("<p/>").addClass("text-secondary").html(fila.pevo + " | " + fila.oevo)
+											)
 										)
-									)
-								);
+									);
+								}
+								else {
+									if(curr == fila.auid) {
+										tbody.append(
+											$("<tr/>").addClass("tr-hide tr-" + curr).append(
+												$("<td/>").html("")
+											).append(
+												$("<td/>").html("")
+											).append(
+												$("<td/>").addClass("no-margin").append(
+													$("<p/>").addClass("text-dark").html(fila.nevo)
+												).append(
+													$("<p/>").addClass("text-secondary").html(fila.pevo + " | " + fila.oevo)
+												)
+											)
+										);
+									}
+									else {
+										curr = fila.auid;
+										next++;
+										tbody.append(
+											$("<tr/>").addClass("tr-header").attr("data-cod", fila.auid).append(
+												$("<td/>").html(next)
+											).append(
+												$("<td/>").addClass("no-margin").append(
+													$("<p/>").addClass("text-dark").html(fila.neva)
+												).append(
+													$("<p/>").addClass("text-secondary").html(fila.peva + " | " + fila.oeva)
+												)
+											).append(
+												$("<td/>").html("")
+											).on("click", function() {
+												var tr = $(this);
+												var clase = ".tr-" + tr.data("cod");
+												$(clase).toggle();
+											})
+										).append(
+											$("<tr/>").addClass("tr-hide tr-" + curr).append(
+												$("<td/>").html("")
+											).append(
+												$("<td/>").html("")
+											).append(
+												$("<td/>").addClass("no-margin").append(
+													$("<p/>").addClass("text-dark").html(fila.nevo)
+												).append(
+													$("<p/>").addClass("text-secondary").html(fila.pevo + " | " + fila.oevo)
+												)
+											)
+										);
+									}
+								}
 							}
 							$("#nav-usuarios>.row>.col").empty().append(
 								$("<table/>").addClass("table").append(
 									$("<thead/>").append(
 										$("<tr/>").append(
-											$("<th/>").html("#")
+											$("<th/>").attr("width","2%").html("#")
 										).append(
-											$("<th/>").html("Evaluador")
+											$("<th/>").attr("width","49%").append(
+												$("<input/>").attr({
+													"type": "text",
+													"placeholder": "Evaluador"
+												}).addClass("form-control form-control-sm").on("keyup", function(evt) {
+													var txt = $(this).val().toUpperCase();
+													var trs = $("#nav-usuarios .table").children("tbody").children(".tr-header");
+													$.each(trs, function() {
+														var tr = $(this);
+														var target = tr.children("td").eq(1).html().toUpperCase();
+														if(txt == "" || target.indexOf(txt) > -1) tr.show();
+														else tr.hide();
+													});
+												}).val("")
+											)
 										).append(
-											$("<th/>").html("Evaluado")
+											$("<th/>").attr("width","49%").append(
+												$("<input/>").attr({
+													"type": "text",
+													"placeholder": "Evaluado"
+												}).addClass("form-control form-control-sm").on("keyup", function(evt) {
+													var txt = $(this).val().toUpperCase();
+													var trs = $("#nav-usuarios .table").children("tbody").children(".tr-hide");
+													$.each(trs, function() {
+														var tr = $(this);
+														var target = tr.children("td").eq(2).html().toUpperCase();
+														if(txt == "" || target.indexOf(txt) > -1) tr.show();
+														else tr.hide();
+													});
+												}).val("")
+											)
 										)
 									)
 								).append(tbody)
 							);
+							$.each($(".tr-header"), function() {
+								var tr = $(this);
+								var clase = ".tr-" + tr.data("cod");
+								var tag = $(clase).length + " evaluado(s)";
+								tr.children("td").eq(2).html(tag);
+							});
 						}
 						else {
 							$("#nav-usuarios>.row>.col").empty().append(
@@ -482,40 +585,141 @@
 						}
 						//programacion
 						if(dprogramacion.length > 0) {
-							var tbody = $("<tbody/>")
+							var tbody = $("<tbody/>");
+							var curr = -1;
+							var next = 1;
 							for(var i in dprogramacion) {
 								var fila = dprogramacion[i];
-								tbody.append(
-									$("<tr/>").append(
-										$("<td/>").html(parseInt(i) + 1)
-									).append(
-										$("<td/>").addClass("no-margin").append(
-											$("<p/>").addClass("text-dark").html(fila.neva)
+								if(i == 0) {
+									curr = fila.auid;
+									tbody.append(
+										$("<tr/>").addClass("tr-header").attr("data-cod", fila.auid).append(
+											$("<td/>").html(next)
 										).append(
-											$("<p/>").addClass("text-secondary").html(fila.peva + " | " + fila.oeva)
-										)
-									).append(
-										$("<td/>").addClass("no-margin").append(
-											$("<p/>").addClass("text-dark").html(fila.nevo)
+											$("<td/>").addClass("no-margin").append(
+												$("<p/>").addClass("text-dark").html(fila.neva)
+											).append(
+												$("<p/>").addClass("text-secondary").html(fila.peva + " | " + fila.oeva)
+											)
 										).append(
-											$("<p/>").addClass("text-secondary").html(fila.pevo + " | " + fila.oevo)
+											$("<td/>").html("")
+										).on("click", function() {
+											var tr = $(this);
+											var clase = ".tr-" + tr.data("cod");
+											$(clase).toggle();
+										})
+									).append(
+										$("<tr/>").addClass("tr-hide tr-" + curr).append(
+											$("<td/>").html("")
+										).append(
+											$("<td/>").html("")
+										).append(
+											$("<td/>").addClass("no-margin").append(
+												$("<p/>").addClass("text-dark").html(fila.nevo)
+											).append(
+												$("<p/>").addClass("text-secondary").html(fila.pevo + " | " + fila.oevo)
+											)
 										)
-									)
-								);
+									);
+								}
+								else {
+									if(curr == fila.auid) {
+										tbody.append(
+											$("<tr/>").addClass("tr-hide tr-" + curr).append(
+												$("<td/>").html("")
+											).append(
+												$("<td/>").html("")
+											).append(
+												$("<td/>").addClass("no-margin").append(
+													$("<p/>").addClass("text-dark").html(fila.nevo)
+												).append(
+													$("<p/>").addClass("text-secondary").html(fila.pevo + " | " + fila.oevo)
+												)
+											)
+										);
+									}
+									else {
+										curr = fila.auid;
+										next++;
+										tbody.append(
+											$("<tr/>").addClass("tr-header").attr("data-cod", fila.auid).append(
+												$("<td/>").html(next)
+											).append(
+												$("<td/>").addClass("no-margin").append(
+													$("<p/>").addClass("text-dark").html(fila.neva)
+												).append(
+													$("<p/>").addClass("text-secondary").html(fila.peva + " | " + fila.oeva)
+												)
+											).append(
+												$("<td/>").html("")
+											).on("click", function() {
+												var tr = $(this);
+												var clase = ".tr-" + tr.data("cod");
+												$(clase).toggle();
+											})
+										).append(
+											$("<tr/>").addClass("tr-hide tr-" + curr).append(
+												$("<td/>").html("")
+											).append(
+												$("<td/>").html("")
+											).append(
+												$("<td/>").addClass("no-margin").append(
+													$("<p/>").addClass("text-dark").html(fila.nevo)
+												).append(
+													$("<p/>").addClass("text-secondary").html(fila.pevo + " | " + fila.oevo)
+												)
+											)
+										);
+									}
+								}
 							}
 							$("#nav-revusuarios>.row>.col").empty().append(
 								$("<table/>").addClass("table").append(
 									$("<thead/>").append(
 										$("<tr/>").append(
-											$("<th/>").html("#")
+											$("<th/>").attr("width","2%").html("#")
 										).append(
-											$("<th/>").html("Evaluador")
+											$("<th/>").attr("width","49%").append(
+												$("<input/>").attr({
+													"type": "text",
+													"placeholder": "Evaluador"
+												}).addClass("form-control form-control-sm").on("keyup", function(evt) {
+													var txt = $(this).val().toUpperCase();
+													var trs = $("#nav-revusuarios .table").children("tbody").children(".tr-header");
+													$.each(trs, function() {
+														var tr = $(this);
+														var target = tr.children("td").eq(1).html().toUpperCase();
+														if(txt == "" || target.indexOf(txt) > -1) tr.show();
+														else tr.hide();
+													});
+												}).val("")
+											)
 										).append(
-											$("<th/>").html("Evaluado")
+											$("<th/>").attr("width","49%").append(
+												$("<input/>").attr({
+													"type": "text",
+													"placeholder": "Evaluado"
+												}).addClass("form-control form-control-sm").on("keyup", function(evt) {
+													var txt = $(this).val().toUpperCase();
+													var trs = $("#nav-revusuarios .table").children("tbody").children(".tr-hide");
+													$.each(trs, function() {
+														var tr = $(this);
+														var target = tr.children("td").eq(2).html().toUpperCase();
+														if(txt == "" || target.indexOf(txt) > -1) tr.show();
+														else tr.hide();
+													});
+												}).val("")
+											)
 										)
 									)
 								).append(tbody)
 							);
+							$.each($(".tr-header"), function() {
+								var tr = $(this);
+								var clase = ".tr-" + tr.data("cod");
+								var tag = $(clase).length + " evaluado(s)";
+								tr.children("td").eq(2).html(tag);
+							});
 							if(ds.editar == "S") {
 								$("#nav-revusuarios>.row>.col").append(
 									$("<a/>").attr({

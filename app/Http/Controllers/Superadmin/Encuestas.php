@@ -232,7 +232,7 @@ class Encuestas extends Controller {
                 ->where("eval.id_empresa", $usuario->id_empresa)
                 ->select(DB::raw("concat(enta.des_nombre_1,' ',enta.des_nombre_2,', ',enta.des_nombre_3) as nevo"),"psta.des_puesto as pevo",
                     "ofca.des_oficina as oevo",DB::raw("concat(entb.des_nombre_1,' ',entb.des_nombre_2,', ',entb.des_nombre_3) as neva"),
-                    "pstb.des_puesto as peva","ofcb.des_oficina as oeva")
+                    "pstb.des_puesto as peva","ofcb.des_oficina as oeva","eval.id_evaluador as auid")
                 ->orderBy("neva","asc")
                 ->orderBy("nevo", "asc")
                 ->get();
