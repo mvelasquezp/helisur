@@ -10,7 +10,6 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
-
 //autenticacion de usuarios
 Route::group(["prefix" => "login"], function() {
 	Route::get("/", ["as" => "login", "uses" => "Autenticacion@form_login"]);
@@ -135,6 +134,7 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 		Route::get("analisis", "Resultados@analisis");
 		Route::prefix("ajax")->group(function() {
 			//resultados/ajax
+			Route::post("ls-empresa", "Resultados@ls_empresa");
 			Route::post("ls-oficinas", "Resultados@ls_oficinas");
 			Route::post("ls-puestos", "Resultados@ls_puestos");
 			Route::post("ls-personal", "Resultados@ls_personal");

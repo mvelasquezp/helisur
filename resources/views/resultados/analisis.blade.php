@@ -7,6 +7,9 @@
 		<style type="text/css">
 			.dv-grafico{height:360px;padding:15px;width:100%}
 			.ch-title{margin:10px 0}
+			.ch-input-enc{display:none}
+			.ch-input-enc+label{user-select:none}
+			.ch-input-enc:checked+label{background-color:rgba(0,0,0,.1)}
 		</style>
 	</head>
 	<body>
@@ -16,10 +19,17 @@
 			<div class="row">
 				<div class="col">
 					<div class="alert alert-secondary" role="alert">
-						<a id="sl-gerencia" href="#" class="btn btn-xs btn-danger" data-toggle="modal" data-target="#modal-gerencia">Seleccionar Gerencia</a>
-						<a id="sl-area" href="#" class="btn btn-xs btn-danger" data-toggle="modal" data-target="#modal-area">Seleccionar Área</a>
-						<a id="sl-puesto" href="#" class="btn btn-xs btn-danger" data-toggle="modal" data-target="#modal-puesto">Seleccionar Puesto</a>
-						<a id="sl-personal" href="#" class="btn btn-xs btn-danger" data-toggle="modal" data-target="#modal-personal">Seleccionar Colaborador</a>
+						<div class="row">
+							<div class="col-10">
+								<a id="sl-gerencia" href="#" class="btn btn-xs btn-danger" data-toggle="modal" data-target="#modal-gerencia">Seleccionar Gerencia</a>
+								<a id="sl-area" href="#" class="btn btn-xs btn-danger" data-toggle="modal" data-target="#modal-area">Seleccionar Área</a>
+								<a id="sl-puesto" href="#" class="btn btn-xs btn-danger" data-toggle="modal" data-target="#modal-puesto">Seleccionar Puesto</a>
+								<a id="sl-personal" href="#" class="btn btn-xs btn-danger" data-toggle="modal" data-target="#modal-personal">Seleccionar Colaborador</a>
+							</div>
+							<div class="col-2 text-right">
+								<a id="sl-encuestas" href="#" class="btn btn-xs btn-success" data-toggle="modal" data-target="#modal-encuesta">Todas las encuestas</a>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -194,6 +204,31 @@
 				</div>
 			</div>
 		</div>
+		<!-- modal encuesta -->
+		<div id="modal-encuesta" class="modal fade"  tabindex="-1" role="dialog">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title">Seleccionar encuesta</h5>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<div class="list-group">
+							@foreach($encuestas as $encuesta)
+							<input type="checkbox" class="ch-input-enc" id="ch-encuesta-{{ $encuesta->id }}" value="{{ $encuesta->id }}">
+							<label class="list-group-item list-group-item-action" for="ch-encuesta-{{ $encuesta->id }}">{{ $encuesta->value }}</label>
+							@endforeach
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-primary" id="sv-encuesta">Cargar reporte</button>
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+					</div>
+				</div>
+			</div>
+		</div>
 		<!-- JS -->
 		@include("common.scripts")
 		<script src="{{ asset('highcharts/highcharts.js') }}"></script>
@@ -201,45 +236,59 @@
 		<script src="{{ asset('highcharts/modules/exporting.js') }}"></script>
 		<script type="text/javascript">
 			var chartWidth;
+			function ls_encuestas() {
+				var ips = $(".ch-input-enc:checked");
+				var encuestas = new Array();
+				$.each(ips, function() {
+					encuestas.push($(this).val());
+				});
+				return encuestas;
+			}
 			function graficar_gerencias() {
-				var arr_categorias = [], arr_series = [];
-				var grf_gerencias = {!! json_encode($grafico) !!};
-				for(var i in grf_gerencias) {
-					arr_categorias.push(grf_gerencias[i].label);
-					arr_series.push(parseFloat(grf_gerencias[i].y));
-				}
-				$("#ch-helisur").highcharts({
-			        chart: { polar: true, type: 'line' },
-			        title: { text: 'Promedio de PUNTAJE', x: -80 },
-			        pane: { size: '80%' },
-			        xAxis: {
-			            categories: arr_categorias,
-			            tickmarkPlacement: 'on',
-			            lineWidth: 0
-			        },
-			        yAxis: {
-			            gridLineInterpolation: 'polygon',
-			            lineWidth: 0,
-			            min: 0
-			        },
-			        tooltip: {
-			            shared: true,
-			            pointFormat: '<span style="color:{series.color}">{series.name}: <b>{point.y:,.3f} pts.</b><br/>'
-			        },
-			        legend: {
-			            align: 'right',
-			            verticalAlign: 'top',
-			            y: 70,
-			            layout: 'vertical'
-			        },
-			        series: [{
-			            name: "Helisur",
-			            data: arr_series,
-			            pointPlacement: 'on'
-			        }]
+				var p = { _token:"{{ csrf_token() }}",ecs:ls_encuestas() };
+				$.post("{{ url('resultados/ajax/ls-empresa') }}", p, function(response) {
+					if(response.success) {
+						var arr_categorias = [], arr_series = [];
+						var grf_gerencias = response.data.grafico;
+						for(var i in grf_gerencias) {
+							arr_categorias.push(grf_gerencias[i].label);
+							arr_series.push(parseFloat(grf_gerencias[i].y));
+						}
+						$("#ch-helisur").highcharts({
+					        chart: { polar: true, type: 'line' },
+					        title: { text: 'Promedio de PUNTAJE', x: -80 },
+					        pane: { size: '80%' },
+					        xAxis: {
+					            categories: arr_categorias,
+					            tickmarkPlacement: 'on',
+					            lineWidth: 0
+					        },
+					        yAxis: {
+					            gridLineInterpolation: 'polygon',
+					            lineWidth: 0,
+					            min: 0
+					        },
+					        tooltip: {
+					            shared: true,
+					            pointFormat: '<span style="color:{series.color}">{series.name}: <b>{point.y:,.3f} pts.</b><br/>'
+					        },
+					        legend: {
+					            align: 'right',
+					            verticalAlign: 'top',
+					            y: 70,
+					            layout: 'vertical'
+					        },
+					        series: [{
+					            name: "Helisur",
+					            data: arr_series,
+					            pointPlacement: 'on'
+					        }]
 
-			    });
-			    chartWidth = $("#ch-helisur").width();
+					    });
+					    chartWidth = $("#ch-helisur").width();
+					}
+					else alert("Parámetros incorrectos");
+				}, "json");
 			}
 		</script>
 		<script type="text/javascript">
@@ -252,7 +301,7 @@
 				$("#sl-personal").data("id", a.data("id")).html(txt).removeClass("btn-danger").addClass("btn-success").attr("title", a.html());
 				$("#modal-personal").modal("hide");
 				//carga datos para el grafico
-				var p = { _token:"{{ csrf_token() }}", uid:a.data("id"), pid:a.data("pid") };
+				var p = { _token:"{{ csrf_token() }}", uid:a.data("id"), pid:a.data("pid"), ecs:ls_encuestas() };
 				$.post("{{ url('resultados/ajax/ch-colaborador') }}", p, function(response) {
 					if(response.success) {
 						var graficos = response.data.datos;
@@ -373,7 +422,7 @@
 				$("#modal-puesto .modal-body").empty();
 				$("#modal-personal .modal-body").empty();
 				//rearmar modals
-				var p = { _token:"{{ csrf_token() }}",ofc:a.data("id") };
+				var p = { _token:"{{ csrf_token() }}",ofc:a.data("id"),ecs:ls_encuestas() };
 				$.post("{{ url('resultados/ajax/ls-puestos') }}", p, function(response) {
 					if(response.success) {
 						var puestos = response.data.puestos;
@@ -477,7 +526,7 @@
 				$("#modal-puesto .modal-body").empty();
 				$("#modal-personal .modal-body").empty();
 				//rearmar modals
-				var p = { _token:"{{ csrf_token() }}",grn:a.data("id") };
+				var p = { _token:"{{ csrf_token() }}",grn:a.data("id"),ecs:ls_encuestas() };
 				$.post("{{ url('resultados/ajax/ls-oficinas') }}", p, function(response) {
 					if(response.success) {
 						var oficinas = response.data.oficinas;
@@ -565,8 +614,21 @@
 					else alert(response.msg);
 				}, "json");
 			});
+			$(".ch-input-enc").prop("checked", true);
 			//iniciar
 			graficar_gerencias();
+			$("#sv-encuesta").on("click", function(evt) {
+				evt.preventDefault();
+				//recarga el grafico general
+				graficar_gerencias();
+				//recarga las gerencias
+				if($(".opt-gerencia.active").length > 0) $(".opt-gerencia.active").trigger("click");
+				//recarga los puestos
+				if($(".opt-area.active").length > 0) $(".opt-area.active").trigger("click");
+				//recarga los usuarios
+				if($(".opt-personal.active").length > 0) $(".opt-personal.active").trigger("click");
+				$("#modal-encuesta").modal("hide");
+			})
 		</script>
 	</body>
 </html>

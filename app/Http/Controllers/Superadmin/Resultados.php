@@ -49,6 +49,11 @@ class Resultados extends Controller {
             ->groupBy("label")
             ->orderBy("label")
             ->get();
+        $encuestas = DB::table("ma_encuesta")
+            ->where("st_encuesta", "<>", "Retirada")
+            ->where("id_empresa", $usuario->id_usuario)
+            ->select("id_encuesta as id", "des_encuesta as value")
+            ->get();
         $total = 0;
         foreach($grafico_gerencias as $r) $total += $r->y;
         $total = $total / count($grafico_gerencias);
@@ -57,17 +62,46 @@ class Resultados extends Controller {
             "menu" => 4,
             "gerencias" => $gerencias,
             "grafico" => $grafico_gerencias,
-            "prom" => $total
+            "prom" => $total,
+            "encuestas" => $encuestas
         ];
         return view("resultados.analisis")->with($arrOpts);
     }
 
     //ajax
 
+    public function ls_empresa() {
+        $usuario = Auth::user();
+        extract(Request::input());
+        if(isset($ecs)) {
+            $grafico_gerencias = DB::table("ev_evaluacion_num as eval")
+                ->join("ma_pregunta as prg", "eval.id_pregunta", "=", "prg.id_pregunta")
+                ->join("ev_subcategoria as sct", function($join_sct) {
+                    $join_sct->on("sct.id_categoria", "=", "prg.id_categoria")
+                        ->on("sct.id_subcategoria", "=", "prg.id_subcategoria");
+                })
+                ->whereIn("eval.id_encuesta", $ecs)
+                ->select("sct.des_subcategoria as label", DB::raw("avg(eval.num_respuesta) as y"))
+                ->groupBy("label")
+                ->orderBy("label")
+                ->get();
+            return Response::json([
+                "success" => true,
+                "data" => [
+                    "grafico" => $grafico_gerencias
+                ]
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+    }
+
     public function ls_oficinas() {
         $usuario = Auth::user();
         extract(Request::input());
-        if(isset($grn)) {
+        if(isset($grn, $ecs)) {
             $oficinas = DB::table("ma_oficina")
                 ->where("num_jerarquia", ">=", 1)
                 ->where("id_empresa", $usuario->id_empresa)
@@ -97,6 +131,7 @@ class Resultados extends Controller {
                 })
                 ->where("ofc.id_oficina_n0", $grn)
                 ->where("eval.id_empresa", $usuario->id_empresa)
+                ->whereIn("eval.id_encuesta", $ecs)
                 ->select("sct.des_subcategoria as label", DB::raw("avg(eval.num_respuesta) as y"))
                 ->groupBy("label")
                 ->orderBy("label")
@@ -118,7 +153,7 @@ class Resultados extends Controller {
     public function ls_puestos() {
         $usuario = Auth::user();
         extract(Request::input());
-        if(isset($ofc)) {
+        if(isset($ofc, $ecs)) {
             $puestos = DB::table("ma_puesto")
                 ->where("id_oficina", $ofc)
                 ->where("st_vigente", "S")
@@ -146,6 +181,7 @@ class Resultados extends Controller {
                 })
                 ->where("ofc.id_oficina", $ofc)
                 ->where("eval.id_empresa", $usuario->id_empresa)
+                ->whereIn("eval.id_encuesta", $ecs)
                 ->select("sct.des_subcategoria as label", DB::raw("avg(eval.num_respuesta) as y"))
                 ->groupBy("label")
                 ->orderBy("label")
@@ -196,7 +232,7 @@ class Resultados extends Controller {
     public function ch_colaborador() {
         $usuario = Auth::user();
         extract(Request::input());
-        if(isset($uid, $pid)) {
+        if(isset($uid, $pid, $ecs)) {
             $datos = DB::table("ev_evaluacion_num as eval")
                 ->join("ma_pregunta as prg", "eval.id_pregunta", "=", "prg.id_pregunta")
                 ->join("ev_subcategoria as sct", function($join_sct) {
@@ -206,6 +242,7 @@ class Resultados extends Controller {
                 ->where("eval.id_usuario", $uid)
                 ->where("eval.id_puesto", $pid)
                 ->where("eval.id_empresa", $usuario->id_empresa)
+                ->whereIn("eval.id_encuesta", $ecs)
                 ->select("sct.des_subcategoria as label", DB::raw("avg(eval.num_respuesta) as y"))
                 ->groupBy("label")
                 ->orderBy("label")
