@@ -31,7 +31,7 @@
 					<ul class="list-group">
                         @foreach($evaluados as $evaluado)
 						<li class="list-group-item">
-							<div class="row">
+							<div class="row" id="ip-{{ $evaluado->uid }}-{{ $evaluado->pid }}">
 								<div class="col-12 col-md-6 no-margin text-center">
 									<img src="{{ url('imagen', [$evaluado->uid]) }}" style="width:25%">
 									<p class="text-info">{{ $evaluado->evaluado }}</p>
@@ -42,26 +42,26 @@
 									<p class="p-result">Puntaje asignado: <b>5</b></p>
 								</div>
 								<div class="col-12 col-md-6">
-									<input type="hidden" name="ids[]" value="{{ implode('|', [$evaluado->uid, $evaluado->pid]) }}">
+									<input type="hidden" name="ids[]" value="{{ implode('|', [$evaluado->uid, $evaluado->pid]) }}" data-uid="{{ $evaluado->uid }}" data-pid="{{ $evaluado->pid }}">
 									<p class="text-success">Menciona tres aspectos positivos o fortalezas</p>
 									<div class="form-group">
-										<input type="text" name="fs1[]" class="form-control form-control-sm mandatory" placeholder="Aspecto positivo 1">
+										<input type="text" name="fs1[]" class="form-control form-control-sm form-mejora mandatory" placeholder="Aspecto positivo 1">
 									</div>
 									<div class="form-group">
-										<input type="text" name="fs2[]" class="form-control form-control-sm" placeholder="Aspecto positivo 2">
+										<input type="text" name="fs2[]" class="form-control form-control-sm form-mejora" placeholder="Aspecto positivo 2">
 									</div>
 									<div class="form-group">
-										<input type="text" name="fs3[]" class="form-control form-control-sm" placeholder="Aspecto positivo 3">
+										<input type="text" name="fs3[]" class="form-control form-control-sm form-mejora" placeholder="Aspecto positivo 3">
 									</div>
 									<p class="text-danger">Menciona tres aspectos a mejorar</p>
 									<div class="form-group">
-										<input type="text" name="db1[]" class="form-control form-control-sm mandatory" placeholder="Aspecto a mejorar 1">
+										<input type="text" name="db1[]" class="form-control form-control-sm form-mejora mandatory" placeholder="Aspecto a mejorar 1">
 									</div>
 									<div class="form-group">
-										<input type="text" name="db2[]" class="form-control form-control-sm" placeholder="Aspecto a mejorar 2">
+										<input type="text" name="db2[]" class="form-control form-control-sm form-mejora" placeholder="Aspecto a mejorar 2">
 									</div>
 									<div class="form-group">
-										<input type="text" name="db3[]" class="form-control form-control-sm" placeholder="Aspecto a mejorar 3">
+										<input type="text" name="db3[]" class="form-control form-control-sm form-mejora" placeholder="Aspecto a mejorar 3">
 									</div>
 								</div>
 							</div>
@@ -70,6 +70,7 @@
 					</ul>
 					<p class="text-right">
 						<br>
+						<a href="#" id="sv-avance" class="btn btn-primary"><i class="fa fa-floppy-o"></i><span> Guardar avance</span></a>
 						<button class="btn btn-success"><i class="fa fa-check"></i> Finalizar encuesta</button>
 					</p>
 				</form>
@@ -95,6 +96,63 @@
 					event.preventDefault();
 				}
 			});
+			$("#sv-avance").on("click", function(evt) {
+				evt.preventDefault();
+				var a = $(this);
+				a.removeClass("btn-primary").addClass("btn-light").children("span").html(" Por favor, espere...");
+				//armar array
+				var bloques = $("ul.list-group").children(".list-group-item");
+				var avance = new Array();
+				$.each(bloques, function() {
+					var bloque = $(this).children(".row");
+					avance.push({
+						uid: bloque.children("div").eq(1).children("input[type=hidden]").eq(0).data("uid"),
+						pid: bloque.children("div").eq(1).children("input[type=hidden]").eq(0).data("pid"),
+						pts: bloque.children("div").eq(0).children("input[type=range]").eq(0).val(),
+						f1: bloque.children("div").eq(1).children(".form-group").eq(0).children("input[type=text]").eq(0).val(),
+						f2: bloque.children("div").eq(1).children(".form-group").eq(1).children("input[type=text]").eq(0).val(),
+						f3: bloque.children("div").eq(1).children(".form-group").eq(2).children("input[type=text]").eq(0).val(),
+						m1: bloque.children("div").eq(1).children(".form-group").eq(3).children("input[type=text]").eq(0).val(),
+						m2: bloque.children("div").eq(1).children(".form-group").eq(4).children("input[type=text]").eq(0).val(),
+						m3: bloque.children("div").eq(1).children(".form-group").eq(5).children("input[type=text]").eq(0).val()
+					});
+				});
+				//console.log(avance);
+				var p = {
+					_token: "{{ csrf_token() }}",
+					eva: $("input[name=eva]").val(),
+					peva: $("input[name=peva]").val(),
+					enc: $("input[name=eid]").val(),
+					avn: avance
+				};
+				$.post("{{ url('responder/ajax/sv-avance') }}", p, function(response) {
+					if(!response.success) {
+						alert(response.msg);
+					}
+					a.removeClass("btn-light").addClass("btn-primary").children("span").html(" Guardar avance");
+				}, "json").fail(function() {
+					a.removeClass("btn-light").addClass("btn-danger").children("span").html(" No se guardó avance");
+				});
+				//hacer post
+			});
+			$(".form-mejora").val("");
 		</script>
+		@if(isset($state))
+		<script type="text/javascript">
+			var valores = {!! json_encode($state) !!};
+			for(var i in valores) {
+				var valor = valores[i];
+				var div = $("#ip-" + valor.uid + "-" + valor.pid);
+				div.children("div").eq(0).children("input[type=range]").val(valor.pts);
+				div.children("div").eq(0).children(".p-result").children("b").html(valor.pts);
+				div.children("div").eq(1).children(".form-group").eq(0).children("input[type=text]").val(valor.f1);
+				div.children("div").eq(1).children(".form-group").eq(1).children("input[type=text]").val(valor.f2);
+				div.children("div").eq(1).children(".form-group").eq(2).children("input[type=text]").val(valor.f3);
+				div.children("div").eq(1).children(".form-group").eq(3).children("input[type=text]").val(valor.m1);
+				div.children("div").eq(1).children(".form-group").eq(4).children("input[type=text]").val(valor.m2);
+				div.children("div").eq(1).children(".form-group").eq(5).children("input[type=text]").val(valor.m3);
+			}
+		</script>
+		@endif
 	</body>
 </html>

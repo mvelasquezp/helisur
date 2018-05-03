@@ -32,6 +32,9 @@ Route::middleware("auth")->namespace("Publico")->group(function() {
 		Route::get("comenzar/{eid}", "Empleados@comenzar");
 		Route::post("guardar", "Empleados@guardar");
 		Route::post("valorar", "Empleados@valorar");
+		Route::prefix("ajax")->group(function() {
+			Route::post("sv-avance", "Empleados@sv_avance");
+		});
 	});
 	//mailer
 	Route::prefix("mailer")->group(function() {

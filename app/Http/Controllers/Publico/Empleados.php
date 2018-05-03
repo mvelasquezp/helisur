@@ -158,11 +158,31 @@ class Empleados extends Controller {
                             ->where("qst.id_encuesta", $eid)
                             ->where("qst.num_orden", $encuesta->actual)
                             ->select("prg.des_pregunta as texto", "grp.des_grupo as grupo", "cnc.des_concepto as concepto",
-                                "cat.des_categoria as categoria", "sct.des_subcategoria as subcategoria", "qst.id_pregunta as pid", "qst.tp_pregunta as ptp")
+                                "cat.des_categoria as categoria", "sct.des_subcategoria as subcategoria", "qst.id_pregunta as pid",
+                                "qst.tp_pregunta as ptp")
                             ->first();
                         $arrOpts["pregunta"] = $pregunta;
                         return view("responder.pregunta")->with($arrOpts);
                     case "Valorando":
+                        $valores = [];
+                        $FilePath = implode(DIRECTORY_SEPARATOR, [env("APP_FILES_PATH"), "avances", implode("-", [$encuesta->eva,$encuesta->peva,$eid,$usuario->id_empresa]) . ".xml"]);
+                        if(file_exists($FilePath)) {
+                            $xml = simplexml_load_file($FilePath);
+                            foreach ($xml->avance as $evaluacion) {
+                                $ev = new \stdClass();
+                                    $ev->uid = (int) $evaluacion->uid;
+                                    $ev->pid = (int) $evaluacion->pid;
+                                    $ev->pts = (int) $evaluacion->puntaje;
+                                    $ev->f1 = (string) $evaluacion->fortalezas->fortaleza[0];
+                                    $ev->f2 = (string) $evaluacion->fortalezas->fortaleza[1];
+                                    $ev->f3 = (string) $evaluacion->fortalezas->fortaleza[2];
+                                    $ev->m1 = (string) $evaluacion->mejoras->mejora[0];
+                                    $ev->m2 = (string) $evaluacion->mejoras->mejora[1];
+                                    $ev->m3 = (string) $evaluacion->mejoras->mejora[2];
+                                $valores[] = $ev;
+                            }
+                        }
+                        $arrOpts["state"] = $valores;
                         return view("responder.valoracion")->with($arrOpts);
                     case "Finalizada":
                         return view("responder.agradecimiento")->with($arrOpts);
@@ -309,6 +329,24 @@ class Empleados extends Controller {
         }
         DB::table("ev_mejora")->insert($arr_to_insert);
         return redirect("responder/" . $eid);
+    }
+
+    public function sv_avance() {
+        extract(Request::input());
+        $usuario = Auth::user();
+        if(isset($eva,$peva,$enc,$avn)) {
+            $FileDir = implode(DIRECTORY_SEPARATOR, [env("APP_FILES_PATH"), "avances"]);
+            @mkdir($FileDir, 0777, true);
+            $FilePath = implode(DIRECTORY_SEPARATOR, [$FileDir, implode("-", [$eva,$peva,$enc,$usuario->id_empresa]) . ".xml"]);
+            if(file_exists($FilePath)) unlink($FilePath);
+            $xml_content = view("xml.avance_valoracion")->with(["usuarios" => $avn]);
+            file_put_contents($FilePath, $xml_content);
+            return Response::json([ "success" => true ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
     }
 
 }
