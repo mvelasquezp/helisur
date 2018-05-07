@@ -640,8 +640,11 @@ class Usuarios extends Controller {
             $fileError = $_FILES["file"]["error"];
             $fileContent = file_get_contents($_FILES["file"]["tmp_name"]);
             if($fileError == UPLOAD_ERR_OK){
-                $path = implode(DIRECTORY_SEPARATOR, [public_path(), "images", "pictures", $cod . ".jpg"]);
-                file_put_contents($path, $fileContent);
+                $path = implode(DIRECTORY_SEPARATOR, [public_path(), "images", "pictures"]);
+                @mkdir($path, 0774, true);
+                $fullpath = implode(DIRECTORY_SEPARATOR, [$path, $cod . ".jpg"]);
+                //@mkdir($)
+                file_put_contents($fullpath, $fileContent);
                 return Response::json([
                     "success" => true
                 ]);
