@@ -303,7 +303,8 @@ class Encuestas extends Controller {
                     ->where("pst.id_puesto", $puesto)
                     ->where("upt.st_vigente", "S")
                     ->where(DB::raw("timestampdiff(month, usr.fe_ingreso, current_timestamp)"), ">=", 6)
-                    ->select("ofc.des_oficina as ofi", "pst.des_puesto as pto", DB::raw("concat(ent.des_nombre_1,' ',ent.des_nombre_2,', ',ent.des_nombre_3) as neva"), "upt.id_usuario as eva", "upt.id_puesto as peva")
+                    ->select("ofc.des_oficina as ofi", "pst.des_puesto as pto", DB::raw("concat(ent.des_nombre_1,' ',ent.des_nombre_2,', ',ent.des_nombre_3) as neva"),
+                        "upt.id_usuario as eva", "upt.id_puesto as peva", DB::raw("ifnull(ofc.id_ancestro, 0) as anc"))
                     ->get();
                 foreach ($evaluadores as $jdx => $eva) {
                     $colegas = DB::table("ev_afinidad_oficina as ao1")
@@ -345,20 +346,21 @@ class Encuestas extends Controller {
                         ->select("ofcn.des_oficina as nofco", "pstn.des_puesto as npevo",
                             DB::raw("concat(ento.des_nombre_1,' ',ento.des_nombre_2,', ',ento.des_nombre_3) as nevo"),
                             "uptn.id_usuario as evo", "uptn.id_puesto as pevo")
-                        ->take(3)
+                        ->orderBy(DB::raw("rand()"))
+                        ->take(2)
                         ->get();
                     foreach ($colegas as $kdx => $evo) {
                         $arr_insert[] = [
-                            "oeva" => $eva->ofi,
-                            "peva" => $eva->pto,
-                            "neva" => $eva->neva,
-                            "eva" => $eva->eva,
-                            "pta" => $eva->peva,
-                            "oevo" => $evo->nofco,
-                            "pevo" => $evo->npevo,
-                            "nevo" => $evo->nevo,
-                            "evo" => $evo->evo,
-                            "pto" => $evo->pevo
+                            "oevo" => $eva->ofi,
+                            "pevo" => $eva->pto,
+                            "nevo" => $eva->neva,
+                            "evo" => $eva->eva,
+                            "pto" => $eva->peva,
+                            "oeva" => $evo->nofco,
+                            "peva" => $evo->npevo,
+                            "neva" => $evo->nevo,
+                            "eva" => $evo->evo,
+                            "pta" => $evo->pevo
                         ];
                     }
                     $chupes = DB::table("ev_afinidad_oficina as ao1")
@@ -400,21 +402,94 @@ class Encuestas extends Controller {
                         ->select("ofcn.des_oficina as nofco", "pstn.des_puesto as npevo",
                             DB::raw("concat(ento.des_nombre_1,' ',ento.des_nombre_2,', ',ento.des_nombre_3) as nevo"),
                             "uptn.id_usuario as evo", "uptn.id_puesto as pevo")
-                        ->take(3)
+                        ->take(2)
                         ->get();
                     foreach ($chupes as $kdx => $evo) {
                         $arr_insert[] = [
-                            "oeva" => $eva->ofi,
-                            "peva" => $eva->pto,
-                            "neva" => $eva->neva,
-                            "eva" => $eva->eva,
-                            "pta" => $eva->peva,
-                            "oevo" => $evo->nofco,
-                            "pevo" => $evo->npevo,
-                            "nevo" => $evo->nevo,
-                            "evo" => $evo->evo,
-                            "pto" => $evo->pevo
+                            "oevo" => $eva->ofi,
+                            "pevo" => $eva->pto,
+                            "nevo" => $eva->neva,
+                            "evo" => $eva->eva,
+                            "pto" => $eva->peva,
+                            "oeva" => $evo->nofco,
+                            "peva" => $evo->npevo,
+                            "neva" => $evo->nevo,
+                            "eva" => $evo->evo,
+                            "pta" => $evo->pevo
                         ];
+                    }
+                    $jefe = DB::table("ma_oficina as ofc")
+                        ->join("ma_puesto as pst", function($join_pstn) {
+                            $join_pstn->on("ofc.id_encargado", "=", "pst.id_oficina")
+                                ->on("ofc.id_empresa", "=", "pst.id_empresa");
+                        })
+                        ->join("us_usuario_puesto as upt", function($join_ofc) {
+                            $join_ofc->on("upt.id_empresa", "=", "ofc.id_empresa")
+                                ->on("upt.id_puesto", "=", "ofc.id_encargado");
+                        })
+                        ->join("us_usuario as usr", function($join_usr) {
+                            $join_usr->on("upt.id_usuario", "=", "usr.id_usuario")
+                                ->on("upt.id_empresa", "=", "usr.id_empresa");
+                        })
+                        ->join("ma_entidad as ent", "usr.cod_entidad", "=", "ent.cod_entidad")
+                        ->where("ofc.id_oficina", $eva->ofi)
+                        ->where(function($sql) use($eva) {
+                            $sql->whereNotNull("ofc.id_encargado")
+                                ->where("ofc.id_encargado", "<>", $eva->pto);
+                        })
+                        ->where("upt.st_vigente", "S")
+                        ->select("ofc.des_oficina as nofco", "pst.des_puesto as npevo", "ofc.id_encargado as pevo",
+                            DB::raw("concat(ent.des_nombre_1,' ',ent.des_nombre_2,', ',ent.des_nombre_3) as nevo"), "upt.id_usuario as evo")
+                        ->get();
+                    if(count($jefe) > 0) {
+                        $jefe = $jefe[0];
+                        $arr_insert[] = [
+                            "oevo" => $eva->ofi,
+                            "pevo" => $eva->pto,
+                            "nevo" => $eva->neva,
+                            "evo" => $eva->eva,
+                            "pto" => $eva->peva,
+                            "oeva" => $jefe->nofco,
+                            "peva" => $jefe->npevo,
+                            "neva" => $jefe->nevo,
+                            "eva" => $jefe->evo,
+                            "pta" => $jefe->pevo
+                        ];
+                    }
+                    else {
+                        $jefe = DB::table("ma_oficina as ofc")
+                            ->join("us_usuario_puesto as upt", function($join_upt) {
+                                $join_upt->on("ofc.id_encargado", "=", "upt.id_puesto")
+                                    ->on("ofc.id_empresa", "=", "upt.id_empresa");
+                            })
+                            ->join("ma_puesto as pst", function($join_pst) {
+                                $join_pst->on("upt.id_puesto", "=", "pst.id_puesto")
+                                    ->on("upt.id_empresa", "=", "pst.id_empresa");
+                            })
+                            ->join("us_usuario as usr", function($join_usr) {
+                                $join_usr->on("upt.id_usuario", "=", "usr.id_usuario")
+                                    ->on("upt.id_empresa", "=", "usr.id_empresa");
+                            })
+                            ->join("ma_entidad as ent", "usr.cod_entidad", "=", "ent.cod_entidad")
+                            ->where("ofc.id_oficina", $eva->anc)
+                            ->select("ofc.des_oficina as nofco", "pst.des_puesto as npevo", "ofc.id_encargado as pevo",
+                                DB::raw("concat(ent.des_nombre_1,' ',ent.des_nombre_2,', ',ent.des_nombre_3) as nevo"), "upt.id_usuario as evo")
+                            ->get();
+                            if(count($jefe) > 0) {
+                                $jefe = $jefe[0];
+                                $arr_insert[] = [
+                                    "oevo" => $eva->ofi,
+                                    "pevo" => $eva->pto,
+                                    "nevo" => $eva->neva,
+                                    "evo" => $eva->eva,
+                                    "pto" => $eva->peva,
+                                    "oeva" => $jefe->nofco,
+                                    "peva" => $jefe->npevo,
+                                    "neva" => $jefe->nevo,
+                                    "eva" => $jefe->evo,
+                                    "pta" => $jefe->pevo
+                                ];
+                            }
                     }
                 }
             }
