@@ -38,12 +38,17 @@ class Usuarios extends Controller {
                 $join_ofc->on("pst.id_empresa", "=", "ofc.id_empresa")
                     ->on("pst.id_oficina", "=", "ofc.id_oficina");
             })
+            ->leftJoin("ma_grupo_ocupacional as gpo", function($join_gpo) {
+                $join_gpo->on("gpo.id_empresa", "=", "usr.id_empresa")
+                    ->on("gpo.id_grupo_ocupacional", "=", "usr.id_grupo_ocupacional");
+            })
             ->where("usr.id_empresa", $usuario->id_empresa)
             ->select("usr.cod_entidad as codigo","ent.des_nombre_1 as apepat","ent.des_nombre_2 as apemat","ent.des_nombre_3 as nombres",
                 DB::raw("date_format(usr.fe_ingreso,'%Y-%m-%d') as ingreso"),DB::raw("ifnull(ofc.des_oficina,'(no asignado)') as area"),
                 DB::raw("ifnull(pst.des_puesto,'(no asignado)') as cargo"),"usr.des_email as email","usr.des_telefono as telefono",
                 "usr.st_vigente as estado","usr.st_verifica_mail as vmail","usr.id_usuario as id", DB::raw("ifnull(upt.id_puesto,0) as ptid"),
-                DB::raw("ifnull(ofc.id_oficina,0) as ofid"))
+                DB::raw("ifnull(ofc.id_oficina,0) as ofid"),DB::raw("ifnull(gpo.id_grupo_ocupacional,0) as cgpo"),
+                DB::raw("ifnull(gpo.des_grupo_ocupacional,'(sin grupo)') as ngpo"))
             ->orderBy("ent.des_nombre_1", "asc")
             ->orderBy("ent.des_nombre_2", "asc")
             ->orderBy("ent.des_nombre_3", "asc")
@@ -59,7 +64,8 @@ class Usuarios extends Controller {
             })
             ->leftJoin("ma_entidad as ent", "usr.cod_entidad", "=", "ent.cod_entidad")
             ->where("ofc.st_oficina", "S")
-            ->select("ofc.id_oficina as id", "ofc.des_oficina as nombre", DB::raw("ifnull(ofc.id_ancestro,0) as aid,ifnull(prn.des_oficina,'(sin jefatura)') as ancestro"),
+            ->select("ofc.id_oficina as id", "ofc.des_oficina as nombre",
+                DB::raw("ifnull(ofc.id_ancestro,0) as aid,ifnull(prn.des_oficina,'(sin jefatura)') as ancestro"),
                 DB::raw("ifnull(concat(des_nombre_3,' ',des_nombre_2,' ',des_nombre_1),'(sin asignar)') as encargado"))
             ->orderBy("ofc.des_oficina", "asc")
             ->get();
@@ -68,12 +74,19 @@ class Usuarios extends Controller {
             ->select("id_oficina as value", "des_oficina as text")
             ->orderBy("des_oficina")
             ->get();
+        $grupos = DB::table("ma_grupo_ocupacional")
+            ->where("id_empresa", $usuario->id_empresa)
+            ->where("st_vigente", "S")
+            ->select("id_grupo_ocupacional as value", "des_grupo_ocupacional as text")
+            ->orderBy("des_grupo_ocupacional", "asc")
+            ->get();
         $arrOpts = [
             "usuario" => $usuario,
             "menu" => 1,
             "usuarios" => $usuarios,
             "puestos" => $puestos,
-            "oficinas" => $oficinas
+            "oficinas" => $oficinas,
+            "grupos" => $grupos
         ];
         return view("usuarios.lista")->with($arrOpts);
     }
@@ -101,6 +114,22 @@ class Usuarios extends Controller {
             "oficinas" => $oficinas
         ];
         return view("usuarios.grupos")->with($arrOpts);
+    }
+
+    public function grupos_ocupacionales() {
+        $usuario = Auth::user();
+        $grupos = DB::table("ma_grupo_ocupacional as gpo")
+            ->where("gpo.st_vigente", "S")
+            ->where("gpo.id_empresa", $usuario->id_empresa)
+            ->select("gpo.id_grupo_ocupacional as value", "gpo.des_grupo_ocupacional as text")
+            ->orderBy("gpo.id_grupo_ocupacional","asc")
+            ->get();
+        $arrOpts = [
+            "usuario" => $usuario,
+            "menu" => 1,
+            "grupos" => $grupos
+        ];
+        return view("usuarios.gocupacionales")->with($arrOpts);
     }
 
     public function organigrama() {
@@ -334,7 +363,7 @@ class Usuarios extends Controller {
                 ]);
                 $alias = strtolower($nom[0] . $app . (strlen($apm) > 0 ? $apm[0] : ""));
                 $password = $app[0] . $app[1] . $nom[0] . $nom[1] . $cod;
-                $uid = DB::table("us_usuario")->insertGetId([
+                $arr_to_insert = [
                     "des_alias" => $alias,
                     "des_email" => $eml,
                     "des_telefono" => $tlf,
@@ -346,7 +375,9 @@ class Usuarios extends Controller {
                     "id_empresa" => $usuario->id_empresa,
                     "fe_ingreso" => $rsFng,
                     "st_verifica_mail" => "N"
-                ]);
+                ];
+                if($gpo != 0) $arr_to_insert["id_grupo_ocupacional"] = $gpo;
+                $uid = DB::table("us_usuario")->insertGetId($arr_to_insert);
                 if($ofc != 0 && $pst != 0) {
                     DB::table("us_usuario_puesto")
                         ->where("id_usuario", $uid)
@@ -408,7 +439,7 @@ class Usuarios extends Controller {
                 ->where("usr.id_empresa", $usuario->id_empresa)
                 ->select("ent.cod_entidad as cod", "ent.des_nombre_1 as app", "ent.des_nombre_2 as apm", "ent.des_nombre_3 as nom", 
                     DB::raw("date_format(usr.fe_ingreso,'%d/%m/%Y') as fng"), "usr.des_email as eml", "usr.des_telefono as tlf", 
-                    DB::raw("ifnull(pst.id_oficina,0) as oid"), DB::raw("ifnull(upt.id_puesto,0) as pid"))
+                    DB::raw("ifnull(pst.id_oficina,0) as oid"), DB::raw("ifnull(upt.id_puesto,0) as pid"), DB::raw("ifnull(usr.id_grupo_ocupacional,0) as gpo"))
                 ->first();
             $puestos = DB::table("ma_puesto")
                 ->where("st_vigente", "S")
@@ -450,7 +481,8 @@ class Usuarios extends Controller {
                 })
                 ->where("usr.id_usuario", $uid)
                 ->where("usr.id_empresa", $usuario->id_empresa)
-                ->select("usr.cod_entidad as cod", "usr.des_email as eml", DB::raw("ifnull(pst.id_oficina,0) as oid"), DB::raw("ifnull(upt.id_puesto,0) as pid"))
+                ->select("usr.cod_entidad as cod", "usr.des_email as eml", DB::raw("ifnull(pst.id_oficina,0) as oid"),
+                    DB::raw("ifnull(upt.id_puesto,0) as pid"), DB::raw("ifnull(usr.id_grupo_ocupacional,0) as gpo"))
                 ->first();
             //
             $vFecha = explode("/", $fng);
@@ -470,6 +502,11 @@ class Usuarios extends Controller {
                     $dataToUpdate["des_email"] = $eml;
                     $dataToUpdate["st_verifica_mail"] = "N";
                 }
+                //checa el grupo ocupacional
+                if(strcmp($gpo, $data->gpo) != 0) {
+                    $dataToUpdate["id_grupo_ocupacional"] = $gpo;
+                }
+                //
                 DB::table("us_usuario")->where("id_usuario", $uid)->update($dataToUpdate);
                 if($ofc != 0 && $pst != 0 && ($data->oid != $ofc || $data->pid != $pst)) {
                     DB::table("us_usuario_puesto")
@@ -521,6 +558,24 @@ class Usuarios extends Controller {
                 "des_afinidad" => $nom,
                 "id_usuario_registra" => $usuario->id_usuario,
                 "st_vigente" => "S"
+            ]);
+            return Response::json([
+                "success" => true
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+    }
+
+    public function sv_gocupacional() {
+        extract(Request::input());
+        if(isset($nom)) {
+            $usuario = Auth::user();
+            DB::table("ma_grupo_ocupacional")->insert([
+                "id_empresa" => $usuario->id_empresa,
+                "des_grupo_ocupacional" => $nom
             ]);
             return Response::json([
                 "success" => true
@@ -719,11 +774,31 @@ class Usuarios extends Controller {
                 ]);
             return Response::json([
                 "success" => true
-        ]);
+            ]);
         }
         return Response::json([
             "success" => false,
-            "msg" => "Debe seleccionar una imagen para subir"
+            "msg" => "Parámetros incorrectos"
+        ]);
+    }
+
+    public function retirar_gocupacional() {
+        extract(Request::input());
+        if(isset($gid)) {
+            $usuario = Auth::user();
+            DB::table("ma_grupo_ocupacional")
+                ->where("id_empresa", $usuario->id_empresa)
+                ->where("id_grupo_ocupacional", $gid)
+                ->update([
+                    "st_vigente" => "N"
+                ]);
+            return Response::json([
+                "success" => true
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
         ]);
     }
 

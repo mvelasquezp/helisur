@@ -53,6 +53,7 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 		Route::get("organigrama", "Usuarios@organigrama");
 		Route::get("grupos", "Usuarios@grupos");
 		Route::get("registro", "Usuarios@registro");
+		Route::get("grupos-ocupacionales", "Usuarios@grupos_ocupacionales");
 		Route::prefix("ajax")->group(function() {
 			//usuarios/ajax
 			Route::post("dt-oficina", "Usuarios@dt_oficina");
@@ -73,6 +74,8 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 			Route::post("retirar-grupo", "Usuarios@retirar_grupo");
 			Route::post("retirar-oficina", "Usuarios@retirar_oficina");
 			Route::post("eliminar-oficina", "Usuarios@eliminar_oficina");
+			Route::post("sv-gocupacional", "Usuarios@sv_gocupacional");
+			Route::post("retirar-gocupacional", "Usuarios@retirar_gocupacional");
 			//mails
 			Route::post("actualiza-correo-activacion", "Usuarios@actualiza_correo_activacion");
 			Route::post("actualiza-correo-notificacion", "Usuarios@actualiza_correo_notificacion");
@@ -109,6 +112,7 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 			Route::get("/", "Encuestas@programacion");
 			Route::get("evaluadores/{eid}", "Encuestas@evaluadores");
 		});
+		Route::get("programacion-multiple", "Encuestas@programacion_multiple");
 		Route::get("anteriores", "Encuestas@anteriores");
 		Route::get("lanzamiento", "Encuestas@lanzamiento");
 		Route::prefix("ajax")->group(function() {

@@ -54,6 +54,36 @@ class Encuestas extends Controller {
         return view("encuestas.programacion")->with($arrOpts);
     }
 
+    public function programacion_multiple() {
+        $usuario = Auth::user();
+        $usuarios = [];
+        /* QUERY
+select
+usra.id_usuario as eva,
+concat(enta.des_nombre_1,' ',enta.des_nombre_2,' ',enta.des_nombre_3) as neva,
+usro.id_usuario as evo,
+concat(ento.des_nombre_1,' ',ento.des_nombre_2,' ',ento.des_nombre_3) as nevo,
+enc.des_encuesta as encuesta,
+count(eval.id_encuesta) as num
+from us_usuario as usra
+join ma_entidad as enta on usra.cod_entidad = enta.cod_entidad
+join us_usuario_puesto as upta on usra.id_empresa = upta.id_empresa and usra.id_usuario = upta.id_usuario and upta.st_vigente = 'S'
+join ev_evaluacion as eval on eval.id_evaluador = upta.id_usuario and eval.id_puesto_evaluador = upta.id_puesto and eval.id_empresa = upta.id_empresa
+join ma_encuesta as enc on eval.id_encuesta = enc.id_encuesta and eval.id_empresa = enc.id_empresa
+join us_usuario_puesto as upto on eval.id_usuario = upto.id_usuario and eval.id_puesto = upto.id_puesto and eval.id_empresa = upto.id_empresa and upto.st_vigente = 'S'
+join us_usuario as usro on upto.id_usuario = usro.id_usuario and upto.id_empresa = usro.id_empresa
+join ma_entidad as ento on usro.cod_entidad = ento.cod_entidad
+group by eva, neva, evo, nevo, encuesta
+order by neva asc, nevo asc;
+        */
+        $arrOpts = [
+            "usuario" => $usuario,
+            "menu" => 3,
+            "usuarios" => $usuarios
+        ];
+        return view("encuestas.pmultiple")->with($arrOpts);
+    }
+
     public function anteriores() {
         $usuario = Auth::user();
         $arrOpts = [

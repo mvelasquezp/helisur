@@ -37,6 +37,7 @@
 								<th>Fch.Ingreso</th>
 								<th>Área</th>
 								<th>Cargo</th>
+								<th>Grupo</th>
 								<th class="th-helper">
 									Correo <a href="#" class="text-light"><i class="fa fa-info-circle"></i></a>
 									<div class="alert alert-light dv-helper">
@@ -65,6 +66,10 @@
 									<a href="#" class="btn btn-info btn-xs" data-toggle="modal" data-target="#modal-puesto" id="nu-btn-puesto">Seleccionar</a>
 									<input type="hidden" id="nu-puesto">
 								</td>
+								<td>
+									<a href="#" class="btn btn-info btn-xs" data-toggle="modal" data-target="#modal-grupo" id="nu-btn-grupo">Seleccionar</a>
+									<input type="hidden" id="nu-grupo">
+								</td>
 								<td><input type="text" class="form-control form-control-sm" id="nu-email" placeholder="Dirección email"></td>
 								<td><input type="text" class="form-control form-control-sm" id="nu-telefono" placeholder="Nro. Teléfono" style="width:5.5rem;"></td>
 								<td>
@@ -90,6 +95,13 @@
 									<a style="cursor:pointer" class="btn btn-secondary btn-xs text-light" title="{{ $empleado->cargo }}">{{ substr($empleado->cargo,0,25) }}</a>
 									@else
 									{{ $empleado->cargo }}
+									@endif
+								</td>
+								<td>
+									@if($empleado->cgpo != 0)
+									<a style="cursor:pointer" class="btn btn-warning btn-xs" title="{{ $empleado->ngpo }}">{{ substr($empleado->ngpo,0,25) }}</a>
+									@else
+									{{ $empleado->ngpo }}
 									@endif
 								</td>
 								<td>
@@ -149,6 +161,22 @@
 				</div>
 			</div>
 		</div>
+		<!-- modal grupos -->
+		<div class="modal fade" id="modal-grupo" tabindex="-1" role="dialog">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<input type="text" class="form-control form-control-sm" id="go-filtro" placeholder="Seleccione grupo">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<div class="list-group" id="go-lista"></div>
+					</div>
+				</div>
+			</div>
+		</div>
 		<!-- modal nuevo puesto -->
 		<div class="modal fade bd-example-modal-lg" id="modal-registro" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
 			<div class="modal-dialog modal-lg" role="document">
@@ -201,6 +229,15 @@
 										<div class="col-6">
 											<label for="mu-telefono">Teléfono</label>
 											<input type="text" class="form-control form-control-sm" id="mu-telefono" placeholder="Ingrese teléfono">
+										</div>
+										<div class="col-6">
+											<label for="mu-gocupacional">Grupo Ocupacional</label>
+											<select id="mu-gocupacional" class="form-control form-control-sm">
+												<option value="0" selected>(sin asignar)</option>
+												@foreach($grupos as $grupo)
+												<option value="{{ $grupo->value }}">{{ $grupo->text }}</option>
+												@endforeach
+											</select>
 										</div>
 									</div>
 									<div class="form-row">
@@ -304,6 +341,7 @@
 			document.getElementById("nu-puesto").value = 0;
 			var oficinas = {!! json_encode($puestos) !!};
 			var usuarios = {!! json_encode($usuarios) !!};
+			var grupos = {!! json_encode($grupos) !!};
 			function BuscaUsuarios(evt) {
 				evt.preventDefault();
 				var query = document.getElementById("tx-query").value;
@@ -349,10 +387,36 @@
 					}
 				}
 			}
+			function MuestraGrupos(texto) {
+				var go_lista = $("#go-lista");
+				texto = texto.toLowerCase();
+				go_lista.empty();
+				for(var i in grupos) {
+					var grupo = grupos[i];
+					if(grupo.text.toLowerCase().indexOf(texto) > -1) {
+						go_lista.append(
+							$("<a/>").attr("href","#").addClass("list-group-item list-group-item-action flex-column align-items-start").append(
+								$("<div/>").addClass("d-flex w-100 justify-content-between").append(
+									$("<h5/>").addClass("mb-1").html(grupo.text)
+								)
+							).data("gid",grupo.value).data("gnom",grupo.text).on("click", function(evt) {
+								evt.preventDefault();
+								document.getElementById("nu-grupo").value = $(this).data("gid");
+								document.getElementById("nu-btn-grupo").innerHTML = $(this).data("gnom");
+								$("#modal-grupo").modal("hide");
+							})
+						);
+					}
+				}
+			}
 			//eventos
 			$("#modal-oficina").on("show.bs.modal", function() {
 				document.getElementById("of-filtro").value = "";
 				MuestraOficinas('');
+			});
+			$("#modal-grupo").on("show.bs.modal", function() {
+				document.getElementById("go-filtro").value = "";
+				MuestraGrupos('');
 			});
 			$("#modal-puesto").on("show.bs.modal", function() {
 				var p = {
@@ -402,6 +466,7 @@
 						document.getElementById("mu-email").value = usuario.eml;
 						document.getElementById("mu-telefono").value = usuario.tlf;
 						$("#mu-oficina option[value=" + usuario.oid + "]").prop("selected", true);
+						$("#mu-gocupacional option[value=" + usuario.gpo + "]").prop("selected", true);
 						var puestos = response.data.puestos;
 						$("#mu-puesto").empty().append(
 							$("<option/>").val(0).html("(sin asignar)")
@@ -459,7 +524,8 @@
 					eml: document.getElementById("nu-email").value,
 					tlf: document.getElementById("nu-telefono").value,
 					ofc: document.getElementById("nu-oficina").value,
-					pst: document.getElementById("nu-puesto").value
+					pst: document.getElementById("nu-puesto").value,
+					gpo: document.getElementById("nu-grupo").value
 				};
 				$.post("{{ url('usuarios/ajax/sv-usuario') }}", p, function(response) {
 					if(response.success) {
@@ -474,6 +540,8 @@
 						document.getElementById("nu-btn-oficina").innerHTML = "Seleccionar";
 						document.getElementById("nu-puesto").value = 0;
 						document.getElementById("nu-btn-puesto").innerHTML = "Seleccionar";
+						document.getElementById("nu-grupo").value = 0;
+						document.getElementById("nu-btn-grupo").innerHTML = "Seleccionar";
 						location.reload();
 					}
 					else alert(response.msg);
@@ -515,7 +583,8 @@
 					eml: document.getElementById("mu-email").value,
 					tlf: document.getElementById("mu-telefono").value,
 					ofc: document.getElementById("mu-oficina").value,
-					pst: document.getElementById("mu-puesto").value
+					pst: document.getElementById("mu-puesto").value,
+					gpo: document.getElementById("mu-gocupacional").value
 				};
 				$.post("{{ url('usuarios/ajax/ed-usuario') }}", p, function(response) {
 					if(response.success) {
