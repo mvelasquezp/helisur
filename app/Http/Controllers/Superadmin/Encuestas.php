@@ -56,30 +56,63 @@ class Encuestas extends Controller {
 
     public function programacion_multiple() {
         $usuario = Auth::user();
-        $usuarios = [];
-        /* QUERY
-select
-usra.id_usuario as eva,
-concat(enta.des_nombre_1,' ',enta.des_nombre_2,' ',enta.des_nombre_3) as neva,
-usro.id_usuario as evo,
-concat(ento.des_nombre_1,' ',ento.des_nombre_2,' ',ento.des_nombre_3) as nevo,
-enc.des_encuesta as encuesta,
-count(eval.id_encuesta) as num
-from us_usuario as usra
-join ma_entidad as enta on usra.cod_entidad = enta.cod_entidad
-join us_usuario_puesto as upta on usra.id_empresa = upta.id_empresa and usra.id_usuario = upta.id_usuario and upta.st_vigente = 'S'
-join ev_evaluacion as eval on eval.id_evaluador = upta.id_usuario and eval.id_puesto_evaluador = upta.id_puesto and eval.id_empresa = upta.id_empresa
-join ma_encuesta as enc on eval.id_encuesta = enc.id_encuesta and eval.id_empresa = enc.id_empresa
-join us_usuario_puesto as upto on eval.id_usuario = upto.id_usuario and eval.id_puesto = upto.id_puesto and eval.id_empresa = upto.id_empresa and upto.st_vigente = 'S'
-join us_usuario as usro on upto.id_usuario = usro.id_usuario and upto.id_empresa = usro.id_empresa
-join ma_entidad as ento on usro.cod_entidad = ento.cod_entidad
-group by eva, neva, evo, nevo, encuesta
-order by neva asc, nevo asc;
-        */
+        $usuarios = DB::table("us_usuario as usra")
+            ->join("ma_entidad as enta", "usra.cod_entidad", "=", "enta.cod_entidad")
+            ->join("us_usuario_puesto as upta", function($join_upta) {
+                $join_upta->on("usra.id_empresa", "=", "upta.id_empresa")
+                    ->on("usra.id_usuario", "=", "upta.id_usuario")
+                    ->on("upta.st_vigente", "=", DB::raw("'S'"));
+            })
+            ->join("ev_evaluacion as eval", function($join_eval) {
+                $join_eval->on("eval.id_evaluador", "=", "upta.id_usuario")
+                    ->on("eval.id_puesto_evaluador", "=", "upta.id_puesto")
+                    ->on("eval.id_empresa", "=", "upta.id_empresa");
+            })
+            ->join("ma_encuesta as enc", function($join_enc) {
+                $join_enc->on("eval.id_encuesta", "=", "enc.id_encuesta")
+                    ->on("eval.id_empresa", "=", "enc.id_empresa");
+            })
+            ->join("us_usuario_puesto as upto", function($join_upto) {
+                $join_upto->on("eval.id_usuario", "=", "upto.id_usuario")
+                    ->on("eval.id_puesto", "=", "upto.id_puesto")
+                    ->on("eval.id_empresa", "=", "upto.id_empresa")
+                    ->on("upto.st_vigente", "=", DB::raw("'S'"));
+            })
+            ->join("us_usuario as usro", function($join_usro) {
+                $join_usro->on("upto.id_usuario", "=", "usro.id_usuario")
+                    ->on("upto.id_empresa", "=", "usro.id_empresa");
+            })
+            ->join("ma_entidad as ento", "usro.cod_entidad", "=", "ento.cod_entidad")
+            ->where("usra.id_empresa", $usuario->id_empresa)
+            ->orderBy("neva", "asc")
+            ->orderBy("encuesta", "asc")
+            ->orderBy("nevo", "asc")
+            ->select("usra.id_usuario as eva", DB::raw("concat(enta.des_nombre_1,' ',enta.des_nombre_2,' ',enta.des_nombre_3) as neva"),
+                "usro.id_usuario as evo", DB::raw("concat(ento.des_nombre_1,' ',ento.des_nombre_2,' ',ento.des_nombre_3) as nevo"),
+                "enc.des_encuesta as encuesta", "upta.id_puesto as peva", "upto.id_puesto as pevo")
+            ->get();
+        $encuestas = DB::table("ma_encuesta")
+            ->where("id_empresa", $usuario->id_empresa)
+            ->whereIn("st_encuesta", ["Preparada", "Pendiente"])
+            ->select("id_encuesta as value", "des_encuesta as text")
+            ->orderBy("des_encuesta", "asc")
+            ->get();
+        $evaluados = DB::table("us_usuario as usr")
+            ->join("ma_entidad as ent", "usr.cod_entidad", "=", "ent.cod_entidad")
+            ->join("us_usuario_puesto as upt", function($join_upt) {
+                $join_upt->on("usr.id_empresa", "=", "upt.id_empresa")
+                    ->on("usr.id_usuario", "=", "upt.id_usuario")
+                    ->on("upt.st_vigente", "=", DB::raw("'S'"));
+            })
+            ->select("usr.id_usuario as evo", "upt.id_puesto as pevo", DB::raw("concat(ent.des_nombre_1,' ',ent.des_nombre_2,' ',ent.des_nombre_3) as nevo"))
+            ->orderBy("nevo", "asc")
+            ->get();
         $arrOpts = [
             "usuario" => $usuario,
             "menu" => 3,
-            "usuarios" => $usuarios
+            "usuarios" => $usuarios,
+            "encuestas" => $encuestas,
+            "evaluados" => $evaluados
         ];
         return view("encuestas.pmultiple")->with($arrOpts);
     }
@@ -947,6 +980,37 @@ order by neva asc, nevo asc;
                     "st_evaluacion" => "Anulada",
                     "nu_progreso" => 0
                 ]);
+            return Response::json([
+                "success" => true
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+    }
+
+    public function asigna_evaluadores() {
+        extract(Request::input());
+        if(isset($eva, $peva, $evos, $encs)) {
+            $usuario = Auth::user();
+            $arrToInsert = [];
+            foreach($encs as $i => $encuesta) {
+                foreach ($evos as $j => $evaluado) {
+                    $vEvaluado = explode("@", $evaluado);
+                    $arrToInsert[] = [
+                        "id_encuesta" => $encuesta,
+                        "id_empresa" => $usuario->id_empresa,
+                        "id_usuario" => $vEvaluado[0],
+                        "st_evaluacion" => "Programado",
+                        "nu_progreso" => 0,
+                        "id_puesto" => $vEvaluado[1],
+                        "id_evaluador" => $eva,
+                        "id_puesto_evaluador" => $peva
+                    ];
+                }
+            }
+            DB::table("ev_evaluacion")->insert($arrToInsert);
             return Response::json([
                 "success" => true
             ]);

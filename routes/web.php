@@ -133,6 +133,7 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 			Route::post("dt-progreso-encuesta", "Encuestas@dt_progreso_encuesta");
 			Route::post("del-encuesta", "Encuestas@del_encuesta");
 			Route::post("retira-evaluacion", "Encuestas@retira_evaluacion");
+			Route::post("asigna-evaluadores", "Encuestas@asigna_evaluadores");
 		});
 	});
 	//modulo de resultados
