@@ -199,6 +199,7 @@
 					$.post("{{ url('encuestas/ajax/asigna-evaluadores') }}", p, function(response) {
 						if(response.success) {
 							alert("Encuestas programadas!");
+							location.reload();
 						}
 						else alert(response.msg);
 					}, "json");
