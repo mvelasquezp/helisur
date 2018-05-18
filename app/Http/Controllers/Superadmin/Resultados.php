@@ -314,9 +314,9 @@ class Resultados extends Controller {
                 $mailBody->enlace = (string) $xml->message->enlace;
             }
             else {
-                $mailBody->saludo = "Bienvenido,";
-                $mailBody->mensaje = "Has sido seleccionado para formar parte de la evaluación de competencias de Helisur.\nAntes de comenzar, necesitamos que verifiques tu cuenta de correo. Para ello, solo deberás hacer clic en el siguiente enlace:";
-                $mailBody->enlace = "Activar mi cuenta";
+                $mailBody->saludo = "Estimado(a)";
+                $mailBody->mensaje = "Al parecer, tienes evaluaciones pendientes por responder. Recuerda que tu participación es de suma importancia para conocer más acerca del desempeño de nuestros colaboradores.\nPara terminar de evaluar, ingresa al portal de gestión de competencias, o haz clic en el siguiente enlace:";
+                $mailBody->enlace = "Ingresar al sistema de evaluación de competencias";
             }
             //go go power rangers
             $data = [

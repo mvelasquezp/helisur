@@ -103,6 +103,10 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 			Route::post("del-categoria", "Preguntas@del_categoria");
 			Route::post("del-subcategoria", "Preguntas@del_subcategoria");
 			Route::post("del-pregunta", "Preguntas@del_pregunta");
+			Route::post("act-grupo", "Preguntas@act_grupo");
+			Route::post("act-concepto", "Preguntas@act_concepto");
+			Route::post("act-categoria", "Preguntas@act_categoria");
+			Route::post("act-subcategoria", "Preguntas@act_subcategoria");
 		});
 	});
 	//modulo de encuestas

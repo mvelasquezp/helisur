@@ -310,6 +310,58 @@
 					}, "json");
 				}
 			}
+            function ActivaGrupo(event) {
+                event.preventDefault();
+                if(window.confirm("¿Seguro que desea reactivar al grupo?")) {
+                    var a = $(this);
+                    var p = { _token:"{{ csrf_token() }}",gid:a.data("gid") };
+                    $.post("{{ url('preguntas/ajax/act-grupo') }}", p, function(response) {
+                        if(response.success) {
+                            alert("Se reactivó al grupo");
+                            location.reload();
+                        }
+                    }, "json");
+                }
+            }
+            function ActivaConcepto(event) {
+                event.preventDefault();
+                if(window.confirm("¿Seguro que desea reactivar al concepto?")) {
+                    var a = $(this);
+                    var p = { _token:"{{ csrf_token() }}",nid:a.data("nid") };
+                    $.post("{{ url('preguntas/ajax/act-concepto') }}", p, function(response) {
+                        if(response.success) {
+                            alert("Se reactivó al concepto");
+                            location.reload();
+                        }
+                    }, "json");
+                }
+            }
+            function ActivaCategoria(event) {
+                event.preventDefault();
+                if(window.confirm("¿Seguro que desea reactivar la categoria?")) {
+                    var a = $(this);
+                    var p = { _token:"{{ csrf_token() }}",cid:a.data("cid") };
+                    $.post("{{ url('preguntas/ajax/act-categoria') }}", p, function(response) {
+                        if(response.success) {
+                            alert("Se reactivó la categoria");
+                            location.reload();
+                        }
+                    }, "json");
+                }
+            }
+            function ActivaSubcategoria(event) {
+                event.preventDefault();
+                if(window.confirm("¿Seguro que desea reactivar la subcategoria?")) {
+                    var a = $(this);
+                    var p = { _token:"{{ csrf_token() }}",sid:a.data("sid"),cid:a.data("cid") };
+                    $.post("{{ url('preguntas/ajax/act-subcategoria') }}", p, function(response) {
+                        if(response.success) {
+                            alert("Se reactivó la subcategoria");
+                            location.reload();
+                        }
+                    }, "json");
+                }
+            }
 			$("#btn-ins-grupo").on("click", RegistraGrupo);
 			$("#btn-ins-concepto").on("click", RegistraConcepto);
 			$("#btn-ins-categoria").on("click", RegistraCategoria);
@@ -318,6 +370,10 @@
 			$(".btn-del-concepto").on("click", EliminarConcepto);
 			$(".btn-del-categoria").on("click", EliminarCategoria);
 			$(".btn-del-subcategoria").on("click", EliminarSubcategoria);
+			$(".btn-act-grupo").on("click", ActivaGrupo);
+			$(".btn-act-concepto").on("click", ActivaConcepto);
+			$(".btn-act-categoria").on("click", ActivaCategoria);
+			$(".btn-act-subcategoria").on("click", ActivaSubcategoria);
 		</script>
 	</body>
 </html>

@@ -308,4 +308,69 @@ class Preguntas extends Controller {
         ]);
     }
 
+    public function act_grupo() {
+        extract(Request::input());
+        if(isset($gid)) {
+            $grupos = DB::table("ev_grupo")
+                ->where("id_grupo", $gid)
+                ->update(["st_vigente" => "S"]);
+            return Response::json([
+                "success" => true
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+    }
+
+    public function act_concepto() {
+        extract(Request::input());
+        if(isset($nid)) {
+            $grupos = DB::table("ev_concepto")
+                ->where("id_concepto", $nid)
+                ->update(["st_vigente" => "S"]);
+            return Response::json([
+                "success" => true
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+    }
+
+    public function act_categoria() {
+        extract(Request::input());
+        if(isset($cid)) {
+            $grupos = DB::table("ev_categoria")
+                ->where("id_categoria", $cid)
+                ->update(["st_vigente" => "S"]);
+            return Response::json([
+                "success" => true
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+    }
+
+    public function act_subcategoria() {
+        extract(Request::input());
+        if(isset($cid, $sid)) {
+            $grupos = DB::table("ev_subcategoria")
+                ->where("id_categoria", $cid)
+                ->where("id_subcategoria", $sid)
+                ->update(["st_vigente" => "S"]);
+            return Response::json([
+                "success" => true
+            ]);
+        }
+        return Response::json([
+            "success" => false,
+            "msg" => "Parámetros incorrectos"
+        ]);
+    }
+
 }
