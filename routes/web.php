@@ -154,6 +154,23 @@ Route::middleware(["superadmin", "auth"])->namespace("Superadmin")->group(functi
 			Route::post("ls-recordatorios", "Resultados@ls_recordatorios");
 			Route::post("send-recordatorio", "Resultados@send_recordatorio");
 		});
+		Route::prefix("charts")->group(function() {
+			//resultados/charts
+			Route::get("demo", function() {
+				return '<form method="post">
+					<input type="hidden" name="_token" value="' . csrf_token() . '">
+					<input type="hidden" name="ecs[]" value="1">
+					<input type="hidden" name="ecs[]" value="2">
+					<input type="hidden" name="ecs[]" value="3">
+					<input type="hidden" name="ecs[]" value="4">
+					<input type="hidden" name="ecs[]" value="5">
+					<input type="hidden" name="ecs[]" value="6">
+					<input type="hidden" name="ecs[]" value="7">
+					<input type="submit" value="Go!">
+				</form>';
+			});
+			Route::post("demo", "Resultados@chart_demo");
+		});
 	});
 });
 

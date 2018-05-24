@@ -346,4 +346,157 @@ class Resultados extends Controller {
         ]);
     }
 
+    public function ch_empresa() {
+        $usuario = Auth::user();
+        extract(Request::input());
+        if(isset($ecs)) {
+            $grafico_gerencias = DB::table("ev_evaluacion_num as eval")
+                ->join("ma_pregunta as prg", "eval.id_pregunta", "=", "prg.id_pregunta")
+                ->join("ev_subcategoria as sct", function($join_sct) {
+                    $join_sct->on("sct.id_categoria", "=", "prg.id_categoria")
+                        ->on("sct.id_subcategoria", "=", "prg.id_subcategoria");
+                })
+                ->whereIn("eval.id_encuesta", $ecs)
+                ->select("sct.des_subcategoria as label", DB::raw("avg(eval.num_respuesta) as y"))
+                ->groupBy("label")
+                ->orderBy("label")
+                ->get();
+            $points = [];
+            $series = [];
+            foreach ($grafico_gerencias as $row) {
+                $points[] = (double) $row->y;
+                $series[] = $row->label;
+            }
+            //carga libreria de graficos
+            include("../../pchart/class/pData.class.php");
+            include("../../pchart/class/pDraw.class.php");
+            include("../../pchart/class/pRadar.class.php");
+            include("../../pchart/class/pImage.class.php");
+            /* Create and populate the pData object */
+            $MyData = new \pData();   
+            $MyData->addPoints(array(40,20,15,10,8,4),"ScoreA");
+            $MyData->addPoints(array(8,10,12,20,30,15),"ScoreB"); 
+            $MyData->addPoints(array(4,8,16,32,16,8),"ScoreC"); 
+            $MyData->setSerieDescription("ScoreA","Application A");
+            $MyData->setSerieDescription("ScoreB","Application B");
+            $MyData->setSerieDescription("ScoreC","Application C");
+            //define las series
+            $MyData->addPoints(array("Size","Speed","Reliability","Functionalities","Ease of use","Weight"),"Labels");
+            $MyData->setAbscissa("Labels");
+            //crea el objeto pchart
+            $myPicture = new \pImage(360,240,$MyData);
+            //dibuja el fondo
+            $Settings = array("R"=>245, "G"=>245, "B"=>245, "Dash"=>1, "DashR"=>255, "DashG"=>255, "DashB"=>255);
+            $myPicture->drawFilledRectangle(0,0,360,240,$Settings); 
+            //dibuja borde de la imagen
+            $myPicture->drawRectangle(0,0,359,239,array("R"=>0,"G"=>0,"B"=>0));
+            //escribe titulo de la imagen
+            $myPicture->setFontProperties(array("FontName"=>"../../pchart/fonts/calibri.ttf","FontSize"=>12));
+            $myPicture->drawText(10,20,"pRadar - Draw radar charts",array("R"=>40,"G"=>40,"B"=>40));
+            //coloca las propiedades
+            $myPicture->setFontProperties(array("FontName"=>"../../pchart/fonts/GeosansLight.ttf","FontSize"=>10,"R"=>80,"G"=>80,"B"=>80));
+            //crea el grafico de radar
+            $SplitChart = new \pRadar();
+            //dibuja el grafico de radar
+            $myPicture->setGraphArea(60,25,300,200);
+            //$Options = array("Layout"=>RADAR_LAYOUT_STAR,"BackgroundGradient"=>array("StartR"=>255,"StartG"=>255,"StartB"=>255,"StartAlpha"=>100,"EndR"=>207,"EndG"=>227,"EndB"=>125,"EndAlpha"=>50), "FontName"=>"../fonts/calibri.ttf","FontSize"=>10);
+            $Options = array("Layout"=>RADAR_LAYOUT_CIRCLE,"LabelPos"=>RADAR_LABELS_HORIZONTAL,"BackgroundGradient"=>array("StartR"=>255,"StartG"=>255,"StartB"=>255,"StartAlpha"=>50,"EndR"=>32,"EndG"=>109,"EndB"=>174,"EndAlpha"=>30), "FontName"=>"../../pchart/fonts/calibri.ttf","FontSize"=>10);
+            $SplitChart->drawRadar($myPicture,$MyData,$Options);
+            //escribe la leyenda del grafico
+            $myPicture->setFontProperties(array("FontName"=>"../../pchart/fonts/calibri.ttf","FontSize"=>10));
+            $myPicture->drawLegend(15,220,array("Style"=>LEGEND_BOX,"Mode"=>LEGEND_HORIZONTAL));
+            /* Render the picture (choose the best way) */
+            $myPicture->render("D:\\files\\helisur\\example.radar.png");
+            $myPicture->autoOutput("example.radar.png");
+        }
+        else return "Parámetros incorrectos";
+    }
+
+    public function chart_demo() {
+        $usuario = Auth::user();
+        extract(Request::input());
+        if(isset($ecs)) {
+            $grafico_gerencias = DB::table("ev_evaluacion_num as eval")
+                ->join("ma_pregunta as prg", "eval.id_pregunta", "=", "prg.id_pregunta")
+                ->join("ev_subcategoria as sct", function($join_sct) {
+                    $join_sct->on("sct.id_categoria", "=", "prg.id_categoria")
+                        ->on("sct.id_subcategoria", "=", "prg.id_subcategoria");
+                })
+                ->whereIn("eval.id_encuesta", $ecs)
+                ->select("sct.des_subcategoria as label", DB::raw("avg(eval.num_respuesta) as y"))
+                ->groupBy("label")
+                ->orderBy("label")
+                ->get();
+            //escribe el xls
+            $subtot = 0;
+            $cont = 0;
+            $data = "<table>";
+            $data .= "<tr>
+                <th style=\"background:#202020;color:#ffffff;border:1px solid #e0e0e0;\">Competencia</th>
+                <th style=\"background:#202020;color:#ffffff;border:1px solid #e0e0e0;\">Puntaje</th>
+            </tr>";
+            $points = [];
+            $series = [];
+            foreach ($grafico_gerencias as $idx => $row) {
+                $points[] = (double) $row->y;
+                $series[] = $row->label;
+                $subtot += $row->y;
+                $cont++;
+                $data .= "<tr>
+                    <td style=\"border:1px solid #e0e0e0;vertical-align:middle;" . ($idx % 2 == 0 ? "background:#f2f2f2;" : "background:#ffffff;") . "\">" . utf8_decode($row->label) . "</td>
+                    <td style=\"border:1px solid #e0e0e0;vertical-align:middle;" . ($idx % 2 == 0 ? "background:#f2f2f2;" : "background:#ffffff;") . "\">" . utf8_decode($row->y) . "</td>
+                    <td>" . ($idx == 0 ? "<img src=\"XXX\">" : "") . "</td>
+                </tr>";
+            }
+            $data .= "<tr>
+                <th style=\"border:1px solid #e0e0e0;vertical-align:middle;background:#ffffff\">Total General</th>
+                <th style=\"border:1px solid #e0e0e0;vertical-align:middle;background:#f2f2f2\">" . ($subtot / $cont) . "</th>
+            </tr>";
+            //carga libreria de graficos
+            include("../../pchart/class/pData.class.php");
+            include("../../pchart/class/pDraw.class.php");
+            include("../../pchart/class/pRadar.class.php");
+            include("../../pchart/class/pImage.class.php");
+            /* Create and populate the pData object */
+            $MyData = new \pData();   
+            $MyData->addPoints($points,"Helisur");
+            $MyData->setSerieDescription("Helisur","Todos los colaboradores");
+            //define las series
+            $MyData->addPoints($series,"Competencias");
+            $MyData->setAbscissa("Competencias");
+            //crea el objeto pchart
+            $myPicture = new \pImage(720,480,$MyData);
+            //dibuja el fondo
+            $Settings = array("R"=>253, "G"=>253, "B"=>253, "Dash"=>1, "DashR"=>255, "DashG"=>255, "DashB"=>255);
+            $myPicture->drawFilledRectangle(0,0,720,480,$Settings); 
+            //dibuja borde de la imagen
+            $myPicture->drawRectangle(0,0,719,479,array("R"=>0,"G"=>0,"B"=>0));
+            //escribe titulo de la imagen
+            $myPicture->setFontProperties(array("FontName"=>"../../pchart/fonts/calibri.ttf","FontSize"=>12));
+            $myPicture->drawText(30,30,"Promedio de Puntajes",array("R"=>40,"G"=>40,"B"=>40));
+            //coloca las propiedades
+            $myPicture->setFontProperties(array("FontName"=>"../../pchart/fonts/GeosansLight.ttf","FontSize"=>10,"R"=>80,"G"=>80,"B"=>80));
+            //crea el grafico de radar
+            $SplitChart = new \pRadar();
+            //dibuja el grafico de radar
+            $myPicture->setGraphArea(60,25,600,400);
+            $Options = array("Layout"=>RADAR_LAYOUT_CIRCLE,"WriteValues"=>TRUE,"LabelPos"=>RADAR_LABELS_HORIZONTAL,"BackgroundGradient"=>array("StartR"=>255,"StartG"=>255,"StartB"=>255,"StartAlpha"=>10,"EndR"=>32,"EndG"=>109,"EndB"=>174,"EndAlpha"=>10), "FontName"=>"../../pchart/fonts/calibri.ttf","FontSize"=>10);
+            $SplitChart->drawRadar($myPicture,$MyData,$Options);
+            //escribe la leyenda del grafico
+            $myPicture->setFontProperties(array("FontName"=>"../../pchart/fonts/calibri.ttf","FontSize"=>10));
+            $myPicture->drawLegend(30,440,array("Style"=>LEGEND_BOX,"Mode"=>LEGEND_HORIZONTAL));
+            //escribe la imagen
+            $name = date("YmdHis") . ".png";
+            $myPicture->render(public_path() . DIRECTORY_SEPARATOR . "charts" . DIRECTORY_SEPARATOR . $name);
+            //guarda la iamgen
+            str_replace("XXX", url("charts", [$name]), $data);
+            //escribe el xls
+            $file = "export.xls";
+            header("Content-type: application/vnd.ms-excel");
+            header("Content-Disposition: attachment; filename=$file");
+            echo $data;
+        }
+        else return "Parámetros incorrectos";
+    }
+
 }
