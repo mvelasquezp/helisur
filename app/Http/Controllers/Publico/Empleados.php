@@ -33,6 +33,7 @@ class Empleados extends Controller {
             })
             ->where("eval.id_evaluador", $usuario->id_usuario)
             ->where("eval.id_empresa", $usuario->id_empresa)
+            ->where("enc.st_encuesta", "<>", "Retirada")
             ->select("enc.id_encuesta as eid", "enc.des_encuesta as encuesta", DB::raw("date_format(enc.fe_inicio,'%Y-%m-%d') as inicio"),
                 DB::raw("date_format(enc.fe_fin,'%Y-%m-%d') as fin"), "eval.st_evaluacion as estado", "enc.num_preguntas as cant",
                 "eval.nu_progreso as prog", DB::raw("count(eval.id_usuario) as encuestas"))
