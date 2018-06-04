@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Auth;
 use DB;
 use Request;
+use Session;
 use App\User as User;
 
 class Autenticacion extends Controller {
@@ -21,7 +22,10 @@ class Autenticacion extends Controller {
     }
 
     public function form_login() {
-        return view("auth.login");
+        $error = Session::get("error");
+        $data = [];
+        if(strcmp($error, "") != 0) $data["error"] = $error;
+        return view("auth.login")->with($data);
     }
 
     public function post_login() {
@@ -31,7 +35,8 @@ class Autenticacion extends Controller {
                 return redirect("/");
             }
             else {
-                return "usuario y/o clave incorrectos [$user, $pswd]";
+                Session::flash("error", "El usuario y clave ingresados son incorrectos");
+                return redirect("login");
             }
         }
         else {

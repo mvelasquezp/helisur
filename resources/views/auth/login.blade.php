@@ -8,7 +8,9 @@
         <link rel='stylesheet prefetch' href="{{ asset('css/lato.css') }}" />
         <link rel='stylesheet prefetch' href="{{ asset('css/font-awesome.min.css') }}" />
         <link rel="stylesheet" href="{{ asset('css/login.css') }}" />
-
+        <style type="text/css">
+            .p-err{color:crimson;margin-bottom:25px}
+        </style>
     </head>
 
     <body>
@@ -34,8 +36,8 @@
                     <input type="text" id="user" name="user" placeholder="Usuario" />
                     <input type="password" id="pswd" name="pswd" placeholder="Contraseña" />
                     <input type="hidden" name="_token" value="{{ csrf_token() }}" />
-                    @if(isset($errmsg))
-                    <p class="p-err">{{ $errmsg }}</p>
+                    @if(isset($error))
+                    <p class="p-err">{{ $error }}</p>
                     @endif
                     <button id="btn-login">Login</button>
                 </form>

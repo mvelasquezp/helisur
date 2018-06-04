@@ -31,7 +31,7 @@
 					<p><br></p>
 					<p class="text-light">Para ingresar, pulsa el siguiente enlace. ¡Muchas gracias por tu apoyo!</p>
 					<p>
-						<a href="{{ url('/') }}" class="btn btn-light">Ingresar al sistema</a>
+						<a href="{{ url('/') }}" class="btn btn-light" target="_blank">Ingresar al sistema</a>
 					</p>
 				</div>
 			</div>

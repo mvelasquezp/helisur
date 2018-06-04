@@ -10,6 +10,7 @@
 			<p style="font-family:Verdana;color:#808080;">Podrás volver a ingresar al sistema usando las siguientes credenciales</p>
 			<p style="font-family:Verdana;color:#808080;"><b>Usuario: </b>{{ $usuario->alias }}</p>
 			<p style="font-family:Verdana;color:#808080;"><b>Clave: </b>{{ $password }}</p>
+			<p style="font-family:Verdana;color:#3f51b5;text-align:right;"><a href="{{ url('login') }}" target="_blank">Ingresar al sistema</a></p>
 		</td>
 	</tr>
 </table>

@@ -9,8 +9,8 @@
 		<div class="container">
 			<div class="row">
 				<div class="col">
-					<h3 class="text-primary">Grupos de afinidad</h3>
-					<p class="text-secondary">Utilice los grupos de afinidad para definir qué áreas se relacionan entre si antes de realizar una encuesta. De este modo, podrá realizar una programación automática de encuestas de manera más sencilla.</p>
+					<h3 class="text-primary">Grupos ocupacionales</h3>
+					<p class="text-secondary">Utilice los grupos ocupacionales para definir a qué bloque pertenecen los usuarios que se registrarán en el sistema.</p>
 					@if(count($grupos) > 0)
 					@foreach($grupos as $idx => $grupo)
 					<div class="card bg-light" style="display:inline-block;margin:0 0.15rem;width:18rem">

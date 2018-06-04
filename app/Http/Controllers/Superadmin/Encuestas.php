@@ -469,16 +469,16 @@ class Encuestas extends Controller {
                         ->get();
                     foreach ($chupes as $kdx => $evo) {
                         $arr_insert[] = [
-                            "oevo" => $eva->ofi,
-                            "pevo" => $eva->pto,
-                            "nevo" => $eva->neva,
-                            "evo" => $eva->eva,
-                            "pto" => $eva->peva,
-                            "oeva" => $evo->nofco,
-                            "peva" => $evo->npevo,
-                            "neva" => $evo->nevo,
-                            "eva" => $evo->evo,
-                            "pta" => $evo->pevo
+                            "oevo" => $evo->nofco,
+                            "pevo" => $evo->npevo,
+                            "nevo" => $evo->nevo,
+                            "evo" => $evo->evo,
+                            "pto" => $evo->pevo,
+                            "oeva" => $eva->ofi,
+                            "peva" => $eva->pto,
+                            "neva" => $eva->neva,
+                            "eva" => $eva->eva,
+                            "pta" => $eva->peva
                         ];
                     }
                     $jefe = DB::table("ma_oficina as ofc")
@@ -507,16 +507,16 @@ class Encuestas extends Controller {
                     if(count($jefe) > 0) {
                         $jefe = $jefe[0];
                         $arr_insert[] = [
-                            "oevo" => $eva->ofi,
-                            "pevo" => $eva->pto,
-                            "nevo" => $eva->neva,
-                            "evo" => $eva->eva,
-                            "pto" => $eva->peva,
-                            "oeva" => $jefe->nofco,
-                            "peva" => $jefe->npevo,
-                            "neva" => $jefe->nevo,
-                            "eva" => $jefe->evo,
-                            "pta" => $jefe->pevo
+                            "oevo" => $jefe->nofco,
+                            "pevo" => $jefe->npevo,
+                            "nevo" => $jefe->nevo,
+                            "evo" => $jefe->evo,
+                            "pto" => $jefe->pevo,
+                            "oeva" => $eva->ofi,
+                            "peva" => $eva->pto,
+                            "neva" => $eva->neva,
+                            "eva" => $eva->eva,
+                            "pta" => $eva->peva
                         ];
                     }
                     else {
@@ -541,16 +541,16 @@ class Encuestas extends Controller {
                             if(count($jefe) > 0) {
                                 $jefe = $jefe[0];
                                 $arr_insert[] = [
-                                    "oevo" => $eva->ofi,
-                                    "pevo" => $eva->pto,
-                                    "nevo" => $eva->neva,
-                                    "evo" => $eva->eva,
-                                    "pto" => $eva->peva,
-                                    "oeva" => $jefe->nofco,
-                                    "peva" => $jefe->npevo,
-                                    "neva" => $jefe->nevo,
-                                    "eva" => $jefe->evo,
-                                    "pta" => $jefe->pevo
+                                    "oevo" => $jefe->nofco,
+                                    "pevo" => $jefe->npevo,
+                                    "nevo" => $jefe->nevo,
+                                    "evo" => $jefe->evo,
+                                    "pto" => $jefe->pevo,
+                                    "oeva" => $eva->ofi,
+                                    "peva" => $eva->pto,
+                                    "neva" => $eva->neva,
+                                    "eva" => $eva->eva,
+                                    "pta" => $eva->peva
                                 ];
                             }
                     }
@@ -860,6 +860,7 @@ class Encuestas extends Controller {
                     ->on("enc.id_empresa", "=", "eval.id_empresa");
             })
             ->where("enc.id_empresa", $usuario->id_empresa)
+            ->where("enc.st_encuesta", "<>", "Retirada")
             ->select("enc.id_encuesta as eid", "enc.des_encuesta as encuesta", "enc.des_descripcion as descripcion", "enc.num_preguntas as preguntas",
                 DB::raw("date_format(enc.fe_inicio,'%Y-%m-%d') as inicio"), DB::raw("date_format(enc.fe_fin,'%Y-%m-%d') as fin"), "enc.st_encuesta as estado",
                 DB::raw("count(1) as cantidad"))
